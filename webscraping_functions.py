@@ -3,7 +3,7 @@ from typing import List
 import requests
 
 
-def get_hackathons(category="sd") -> List[str]:
+def get_hackathons(category: str = "sd") -> List[str]:
     """
     Gets the hackathons on devpost.com/hackathons front page.
     :param: Type is sd(Submission Deadline) or ra(Recently Added); default is sd
@@ -31,11 +31,14 @@ def get_hackathons(category="sd") -> List[str]:
     return links
 
 
-def get_projects(url) -> List[str]:
+def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000, num_links: int = 100000) -> List[str]:
     """
-    Gets all the projects associated with the hackathon from devpost.com.
+    Gets all the projects from a hackathon
     You are meant to pipe data from get_hackathons() into this function
     :param url: url is a str associated with a hackathon
+    :param first_page: First page you're looking for, inclusive
+    :param last_page: Last page you're looking for, inclusive
+    :param num_links: Number of links you're looking for
     :return: List of project urls
     """
 
@@ -43,9 +46,10 @@ def get_projects(url) -> List[str]:
         url = "https://" + url
 
     links: List[str] = []
+    tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for, right after this is the link
     page = 1
 
-    while True:
+    for i in range(first_page, last_page + 1):
         has_projects = False
 
         project_url = url.strip("/") + f"/project-gallery?page={page}"
@@ -55,13 +59,15 @@ def get_projects(url) -> List[str]:
             continue
 
         html = response.text
-        tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for, right after this is the link
 
         while tag in html:
             html = html[html.index(tag) + 58:]  # tag is 58 characters long
             links.append(html[:html.index('">')])  # "> is the ending part of the tag, so we are only getting the url
 
             has_projects = True
+
+            if (len(links) >= num_links):
+                return links
 
         if not has_projects:  # Should only trigger if the while loop hasn't triggered yet, i.e. there is no projects
             break
@@ -70,7 +76,41 @@ def get_projects(url) -> List[str]:
     return links
 
 
-def get_description(url) -> str:
+def get_projects_new(first_page: int = 1, last_page: int = 10000, num_links: int = 100000) -> List[str]:
+    """
+    Gets the projects in devpost.com/software/newest
+    :param first_page: Starts at 1
+    :param last_page: Ending page, will stop before if no more projects - inclusive
+    :return: List of projects
+    """
+    url = "https://devpost.com/software/newest"
+    tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for, right after this is the link
+    links: List[str] = []
+
+    for page in range(first_page, last_page + 1):
+        response = requests.get(url + f"?page={page}")
+        has_projects = False
+
+        if (response.status_code != 200):
+            continue
+        html = response.text
+
+        while tag in html:
+            html = html[html.index(tag) + 58:]
+            links.append(html[:html.index('">')])
+
+            has_projects = True
+
+            if (len(links) >= num_links):
+                return links
+
+        if not has_projects:
+            break
+
+    return links
+
+
+def get_description(url: str) -> str:
     """
     Gets the description associated with a particular project from devpost.com
     You are meant to pipe data from get_projects() into this function
@@ -99,7 +139,7 @@ def get_description(url) -> str:
     return description
 
 
-def get_links(url) -> List[str]:
+def get_links(url: str) -> List[str]:
     """
     Gets the source links associated with a particular project from devpost.com
     You are meant to pipe data from get_projects() into this function
@@ -115,6 +155,9 @@ def get_links(url) -> List[str]:
         return []
 
     html: str = response.text
+    if '<ul data-role="software-urls" class="no-bullet">' not in html:
+        return []
+
     html = html[html.index('<ul data-role="software-urls" class="no-bullet">'):]
     html = html[:html.index("</ul>")]
 
@@ -132,7 +175,10 @@ if (__name__ == "__main__"):
     print(get_hackathons())
     print()
     print("Hack3 Projects: ")
-    print(get_projects("hack3.devpost.com/"))
+    print(get_projects_hackathon("hack3.devpost.com/", num_links=10))
+    print()
+    print("New Projects: ")
+    print(get_projects_new(last_page=1))
     print()
     print("Description: ")
     print(get_description('https://devpost.com/software/mask_pi_hack3'))
