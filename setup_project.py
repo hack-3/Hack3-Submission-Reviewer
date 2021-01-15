@@ -11,7 +11,6 @@ subprocess.check_call([sys.executable, "-m", "pip", "install", "mysql-connector-
 subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
 
 # Gets mysql tables and stuff sort out
-
 user = input("username: ")
 password = input("password: ")
 host = input("Server ip/host: ")
