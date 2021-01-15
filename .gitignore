@@ -141,3 +141,4 @@ cython_debug/
 
 # Random stuff
 .idea/
+storage.json
