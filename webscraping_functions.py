@@ -1,9 +1,9 @@
-from typing import List
+from typing import Set
 
 import requests
 
 
-def get_hackathons(category: str = "sd") -> List[str]:
+def get_hackathons(category: str = "sd") -> Set[str]:
     """
     Gets the hackathons on devpost.com/hackathons front page.
     :param: Type is sd(Submission Deadline) or ra(Recently Added); default is sd
@@ -17,35 +17,35 @@ def get_hackathons(category: str = "sd") -> List[str]:
 
     response = requests.get(url)
     if (response.status_code != 200):
-        return []
+        return set()
 
     html = response.text
     tag = '<a class="clearfix" data-role="featured_challenge" href="'
 
-    links: List[str] = []
+    links: Set[str] = set()
 
     while tag in html:
         html = html[html.index(tag) + 57:]  # tag is 57 characters long
-        links.append(html[:html.index('">')])  # "> is the ending part of the tag, so we are only getting the url
+        links.add(html[:html.index('">')])  # "> is the ending part of the tag, so we are only getting the url
 
     return links
 
 
-def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000, num_links: int = 100000) -> List[str]:
+def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000, max_links: int = 999999) -> Set[str]:
     """
     Gets all the projects from a hackathon
     You are meant to pipe data from get_hackathons() into this function
     :param url: url is a str associated with a hackathon
     :param first_page: First page you're looking for, inclusive
     :param last_page: Last page you're looking for, inclusive
-    :param num_links: Number of links you're looking for
+    :param max_links: Number of links you're looking for
     :return: List of project urls
     """
 
     if ("https://" not in url and "http://" not in url):
         url = "https://" + url
 
-    links: List[str] = []
+    links: Set[str] = set()
     tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for, right after this is the link
     page = 1
 
@@ -62,11 +62,11 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
 
         while tag in html:
             html = html[html.index(tag) + 58:]  # tag is 58 characters long
-            links.append(html[:html.index('">')])  # "> is the ending part of the tag, so we are only getting the url
+            links.add(html[:html.index('">')])  # "> is the ending part of the tag, so we are only getting the url
 
             has_projects = True
 
-            if (len(links) >= num_links):
+            if (len(links) >= max_links):
                 return links
 
         if not has_projects:  # Should only trigger if the while loop hasn't triggered yet, i.e. there is no projects
@@ -76,7 +76,7 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
     return links
 
 
-def get_projects_new(first_page: int = 1, last_page: int = 10000, num_links: int = 100000) -> List[str]:
+def get_projects_new(first_page: int = 1, last_page: int = 10000, max_links: int = 999999) -> Set[str]:
     """
     Gets the projects in devpost.com/software/newest
     :param first_page: Starts at 1
@@ -85,7 +85,7 @@ def get_projects_new(first_page: int = 1, last_page: int = 10000, num_links: int
     """
     url = "https://devpost.com/software/newest"
     tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for, right after this is the link
-    links: List[str] = []
+    links: Set[str] = set()
 
     for page in range(first_page, last_page + 1):
         response = requests.get(url + f"?page={page}")
@@ -97,11 +97,11 @@ def get_projects_new(first_page: int = 1, last_page: int = 10000, num_links: int
 
         while tag in html:
             html = html[html.index(tag) + 58:]
-            links.append(html[:html.index('">')])
+            links.add(html[:html.index('">')])
 
             has_projects = True
 
-            if (len(links) >= num_links):
+            if (len(links) >= max_links):
                 return links
 
         if not has_projects:
@@ -139,7 +139,7 @@ def get_description(url: str) -> str:
     return description
 
 
-def get_links(url: str) -> List[str]:
+def get_links(url: str) -> Set[str]:
     """
     Gets the source links associated with a particular project from devpost.com
     You are meant to pipe data from get_projects() into this function
@@ -152,20 +152,20 @@ def get_links(url: str) -> List[str]:
     response: requests.api = requests.get(url)
 
     if (response.status_code != 200):
-        return []
+        return set()
 
     html: str = response.text
     if '<ul data-role="software-urls" class="no-bullet">' not in html:
-        return []
+        return set()
 
     html = html[html.index('<ul data-role="software-urls" class="no-bullet">'):]
     html = html[:html.index("</ul>")]
 
     tag = 'href='
-    links: List[str] = []
+    links: Set[str] = set()
     while (tag in html):
         html = html[html.index(tag) + 6:]
-        links.append(html[:html.index('"')])
+        links.add(html[:html.index('"')])
 
     return links
 
@@ -175,7 +175,7 @@ if (__name__ == "__main__"):
     print(get_hackathons())
     print()
     print("Hack3 Projects: ")
-    print(get_projects_hackathon("hack3.devpost.com/", num_links=10))
+    print(get_projects_hackathon("hack3.devpost.com/", max_links=10))
     print()
     print("New Projects: ")
     print(get_projects_new(last_page=1))
