@@ -17,7 +17,7 @@ class Config:
         return cls._instance
 
 
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     config = Config()
     print(config.user)
     print(config.password)

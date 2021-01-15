@@ -28,7 +28,7 @@ def store_one_url(curs: cursor.MySQLCursor, link: str) -> None:
     :return: None
     """
 
-    if (len(link) <= 120):
+    if len(link) <= 120:
         curs.execute(f"INSERT IGNORE INTO project_url (url) VALUES ('{link}')")
     else:
         print(f"Link is too long for the database: {link}")
@@ -37,6 +37,7 @@ def store_one_url(curs: cursor.MySQLCursor, link: str) -> None:
 def store_urls_batch(starting_page=1, ending_page=10, max_links=999999):
     """
     Stores the urls of recently created projects, it is only meant to be run once on table creation to populate it.
+    :param max_links: maximum amount of links you want
     :param starting_page: starting page of projects you want to add(inclusive), default is 1
     :param ending_page: ending page you want to add(inclusive), default is 10
     :return: None

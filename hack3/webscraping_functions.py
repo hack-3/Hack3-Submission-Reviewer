@@ -16,7 +16,7 @@ def get_hackathons(category: str = "sd") -> Set[str]:
         url = "https://devpost.com/hackathons?search=&challenge_type=all&sort_by=Recently+Added"
 
     response = requests.get(url)
-    if (response.status_code != 200):
+    if response.status_code != 200:
         return set()
 
     html = response.text
@@ -42,11 +42,11 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
     :return: List of project urls
     """
 
-    if ("https://" not in url and "http://" not in url):
+    if "https://" not in url and "http://" not in url:
         url = "https://" + url
 
     links: Set[str] = set()
-    tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for, right after this is the link
+    tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for
     page = 1
 
     for i in range(first_page, last_page + 1):
@@ -55,7 +55,7 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
         project_url = url.strip("/") + f"/project-gallery?page={page}"
         response = requests.get(project_url)
 
-        if (response.status_code != 200):
+        if response.status_code != 200:
             continue
 
         html = response.text
@@ -66,7 +66,7 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
 
             has_projects = True
 
-            if (len(links) >= max_links):
+            if len(links) >= max_links:
                 return links
 
         if not has_projects:  # Should only trigger if the while loop hasn't triggered yet, i.e. there is no projects
@@ -79,19 +79,20 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
 def get_projects_new(first_page: int = 1, last_page: int = 10000, max_links: int = 999999) -> Set[str]:
     """
     Gets the projects in devpost.com/software/newest
+    :param max_links: maximum amount of links you want
     :param first_page: Starts at 1
     :param last_page: Ending page, will stop before if no more projects - inclusive
     :return: List of projects
     """
     url = "https://devpost.com/software/newest"
-    tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for, right after this is the link
+    tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for
     links: Set[str] = set()
 
     for page in range(first_page, last_page + 1):
         response = requests.get(url + f"?page={page}")
         has_projects = False
 
-        if (response.status_code != 200):
+        if response.status_code != 200:
             continue
         html = response.text
 
@@ -101,7 +102,7 @@ def get_projects_new(first_page: int = 1, last_page: int = 10000, max_links: int
 
             has_projects = True
 
-            if (len(links) >= max_links):
+            if len(links) >= max_links:
                 return links
 
         if not has_projects:
@@ -118,12 +119,12 @@ def get_description(url: str) -> str:
     :return: Description of the project
     """
 
-    if ("https://" not in url and "http://" not in url):
+    if "https://" not in url and "http://" not in url:
         url = "https://" + url
 
     response = requests.get(url)
 
-    if (response.status_code != 200):
+    if response.status_code != 200:
         return ""
 
     html: str = response.text
@@ -147,11 +148,11 @@ def get_links(url: str) -> Set[str]:
     :return:
     """
 
-    if ("https://" not in url and "http://" not in url):
+    if "https://" not in url and "http://" not in url:
         url = "https://" + url
     response: requests.api = requests.get(url)
 
-    if (response.status_code != 200):
+    if response.status_code != 200:
         return set()
 
     html: str = response.text
@@ -163,16 +164,15 @@ def get_links(url: str) -> Set[str]:
 
     tag = 'href='
     links: Set[str] = set()
-    while (tag in html):
+    while tag in html:
         html = html[html.index(tag) + 6:]
         links.add(html[:html.index('"')])
 
     return links
 
 
-if (__name__ == "__main__"):
+if __name__ == "__main__":
     print("Hacklathons: ")
-    print(get_hackathons())
     print()
     print("Hack3 Projects: ")
     print(get_projects_hackathon("hack3.devpost.com/", max_links=10))
@@ -185,3 +185,4 @@ if (__name__ == "__main__"):
     print()
     print("Source Links: ")
     print(get_links("https://devpost.com/software/ar-grapher"))
+    print(get_hackathons())
