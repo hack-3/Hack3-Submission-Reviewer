@@ -16,9 +16,9 @@ def get_connection() -> mysql.connector:
     )
 
 
-def create_url_table():
+def create_url_table() -> None:
     """
-    Creates a table called "project_url". It is used for store_urls()
+    Creates a table called "project_url". It is used for store_urls().
     :return: None
     """
 
@@ -32,7 +32,7 @@ def create_url_table():
     cnx.close()
 
 
-def store_one_url(cursor: mysql.connector.cursor.MySQLCursor, link: str):
+def store_one_url(cursor: mysql.connector.cursor.MySQLCursor, link: str) -> None:
     """
     Stores a singular url into a database, but you may need to get rid of type annotations as I had to modify mysql's base connector to import it.
     :param cursor: Mysql cursor
@@ -40,20 +40,20 @@ def store_one_url(cursor: mysql.connector.cursor.MySQLCursor, link: str):
     :return: None
     """
 
-    add_url = ("INSERT INTO project_url "
-               "(url) "
-               "VALUES (%(url)s)")
-    cursor.execute(add_url, {"url": link})
+    if (len(link) <= 120):
+        cursor.execute(f"INSERT IGNORE INTO project_url (url) VALUES ('{link}')")
+    else:
+        print(f"Link is too long for the database: {link}")
+
 
 def store_urls_batch(starting_page=1, ending_page=10, max_links=999999):
     """
-    Stores the urls of recently created projects
-    :param starting_page: starting page of projects you want to add(inclusive)
-    :param ending_page: ending page you want to add(inclusive)
+    Stores the urls of recently created projects, it is only meant to be run once on table creation to populate it.
+    :param starting_page: starting page of projects you want to add(inclusive), default is 1
+    :param ending_page: ending page you want to add(inclusive), default is 10
     :return: None
     """
     links = webscraping_functions.get_projects_new(starting_page, ending_page, max_links)
-
 
     cnx = get_connection()
     cursor = cnx.cursor()
@@ -65,6 +65,3 @@ def store_urls_batch(starting_page=1, ending_page=10, max_links=999999):
 
     cursor.close()
     cnx.close()
-
-# create_url_table()
-store_urls_batch()
