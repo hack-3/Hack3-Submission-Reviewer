@@ -15,6 +15,7 @@ def create_database(user, password, host) -> None:
         user=user, password=password,
         host=host,
     )
+
     curs = cnx.cursor()
     curs.execute("CREATE DATABASE hack3")
     cnx.commit()
@@ -39,8 +40,7 @@ def create_url_table(user, password, host) -> None:
     )
 
     curs = cnx.cursor()
-    curs.execute("CREATE TABLE project_url (url VARCHAR(120), time DATETIME);")
-
+    curs.execute("CREATE TABLE project_url (url VARCHAR(120) NOT NULL UNIQUE, time DATETIME);")
     cnx.commit()
 
     curs.close()

@@ -1,8 +1,10 @@
+import time
 import mysql.connector
 from datetime import datetime
 from hack3.Config import Config
 from mysql.connector import cursor
 from hack3 import webscraping_functions
+
 
 def get_connection() -> mysql.connector:
     """
@@ -53,3 +55,13 @@ def store_urls_batch(starting_page=1, ending_page=10, max_links=999999):
 
     curs.close()
     cnx.close()
+
+def monitor_site():
+    """
+    Monitors the devpost site to look for recently created projects
+    :return: None
+    """
+    while True:
+        print("Request sent")
+        store_urls_batch(ending_page=1, max_links=5)
+        time.sleep(30)
