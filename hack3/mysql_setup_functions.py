@@ -1,5 +1,6 @@
 import mysql.connector
-
+from hack3.Config import Config
+from mysql.connector import errors
 
 def create_database(user, password, host) -> None:
     """
@@ -38,9 +39,24 @@ def create_url_table(user, password, host) -> None:
     )
 
     curs = cnx.cursor()
-    curs.execute("CREATE TABLE project_url (url VARCHAR(120));")
+    curs.execute("CREATE TABLE project_url (url VARCHAR(120), time DATETIME);")
 
     cnx.commit()
 
     curs.close()
     cnx.close()
+
+if __name__ == "__main__":
+    config = Config()
+
+    try:
+        create_database(config.user, config.password, config.host)
+    except errors.DatabaseError:
+        pass
+
+    try:
+        create_url_table(config.user, config.password, config.host)
+    except errors.ProgrammingError:
+        pass
+
+

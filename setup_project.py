@@ -25,5 +25,5 @@ try:
 except errors.ProgrammingError:
     pass
 
-with open("hack3/storage.json", "w") as f:
+with open("storage.json", "w") as f:
     json.dump({"user": user, "password": password, "host": host}, f)

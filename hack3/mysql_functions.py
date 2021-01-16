@@ -1,9 +1,8 @@
 import mysql.connector
+from datetime import datetime
 from hack3.Config import Config
-
 from mysql.connector import cursor
 from hack3 import webscraping_functions
-
 
 def get_connection() -> mysql.connector:
     """
@@ -29,7 +28,7 @@ def store_one_url(curs: cursor.MySQLCursor, link: str) -> None:
     """
 
     if len(link) <= 120:
-        curs.execute(f"INSERT IGNORE INTO project_url (url) VALUES ('{link}')")
+        curs.execute(f"INSERT IGNORE INTO project_url (url, time) VALUES ('{link}', '{datetime.today()}')")
     else:
         print(f"Link is too long for the database: {link}")
 
