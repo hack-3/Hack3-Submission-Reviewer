@@ -1,5 +1,5 @@
 from typing import Set
-
+from bs4 import BeautifulSoup
 import requests
 
 
@@ -129,15 +129,21 @@ def get_description(url: str) -> str:
 
     html: str = response.text
 
-    # Parsing gets a little bit tricky, though all descriptions(I hope) start with the tag <h2> and ends in a </div>
-    description: str = html[html.index("<h2>"):]
-    description = description[:description.index("</div>")]
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text()
 
-    tags = ["<h2>", "</h2>", "<p>", "</p>"]
-    for tag in tags:
-        description = description.replace(tag, "")
+    text = text[text.index("Updates") + 8:text.index("Built With")].strip()
+    return text
 
-    return description
+    # # Parsing gets a little bit tricky, though all descriptions(I hope) start with the tag <h2> and ends in a </div>
+    # description: str = html[html.index("<h2>"):]
+    # description = description[:description.index("</div>")]
+    #
+    # tags = ["<h2>", "</h2>", "<p>", "</p>"]
+    # for tag in tags:
+    #     description = description.replace(tag, "")
+    #
+    # return description
 
 
 def get_links(url: str) -> Set[str]:

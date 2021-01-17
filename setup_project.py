@@ -3,8 +3,7 @@ import subprocess
 import sys
 
 from mysql.connector import errors
-from hack3.mysql_setup_functions import (create_database,
-                                         create_url_table)
+from hack3.mysql_setup_functions import create_database, execute_query
 
 # Gets the required libraries from
 subprocess.check_call([sys.executable, "-m", "pip", "install", "mysql-connector-python"])
@@ -21,7 +20,12 @@ except errors.DatabaseError:
     pass
 
 try:
-    create_url_table(user, password, host)
+    execute_query(user, password, host, "CREATE TABLE project_url (url VARCHAR(120) NOT NULL UNIQUE, time DATETIME);")
+except errors.ProgrammingError:
+    pass
+
+try:
+    execute_query(user, password, host, "CREATE TABLE project_data (url VARCHAR(120) NOT NULL UNIQUE, time DATETIME, descCompress VARCHAR(200));")
 except errors.ProgrammingError:
     pass
 
