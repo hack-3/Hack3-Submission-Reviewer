@@ -1,8 +1,8 @@
-import time
+from typing import List
+import tlsh
 import mysql.connector
 from datetime import datetime
 from hack3.Config import Config
-from mysql.connector import cursor
 from hack3 import webscraping_functions
 
 
@@ -21,7 +21,7 @@ def get_connection() -> mysql.connector:
     )
 
 
-def store_one_url(curs: cursor.MySQLCursor, link: str) -> None:
+def store_one_url(link: str) -> None:
     """
     Stores a singular url into a database.
     :param curs: Mysql cursor
@@ -29,10 +29,18 @@ def store_one_url(curs: cursor.MySQLCursor, link: str) -> None:
     :return: None
     """
 
+    connection = get_connection()
+    curs = connection.cursor()
+
     if len(link) <= 120:
         curs.execute(f"INSERT IGNORE INTO project_url (url, time) VALUES ('{link}', '{datetime.today()}')")
     else:
         print(f"Link is too long for the database: {link}")
+
+    connection.commit()
+
+    curs.close()
+    connection.close()
 
 
 def store_urls_batch(starting_page=1, ending_page=10, max_links=999999):
@@ -45,23 +53,26 @@ def store_urls_batch(starting_page=1, ending_page=10, max_links=999999):
     """
     links = webscraping_functions.get_projects_new(starting_page, ending_page, max_links)
 
-    cnx = get_connection()
-    curs = cnx.cursor()
-
     for link in links:
-        store_one_url(curs, link)
+        store_one_url(link)
 
-    cnx.commit()
+
+def hash_descriptions():
+    query = "SELECT url FROM project_url WHERE url NOT IN (SELECT url FROM project_description)"
+
+    connection = get_connection()
+    curs = connection.cursor()
+
+    curs.execute(query)
+    urls = [i[0] for i in curs]
+
+    for link in urls:
+        description = webscraping_functions.get_description(link)
+
+        curs.execute(f"INSERT INTO project_description (url, time, descHash) VALUES ('{link}', '{datetime.today()}', '{tlsh.hash(description.encode('utf-8'))}')")
+
+    connection.commit()
 
     curs.close()
-    cnx.close()
+    connection.close()
 
-def monitor_site():
-    """
-    Monitors the devpost site to look for recently created projects
-    :return: None
-    """
-    while True:
-        print("Request sent")
-        store_urls_batch(ending_page=1, max_links=5)
-        time.sleep(30)

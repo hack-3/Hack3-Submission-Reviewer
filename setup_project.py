@@ -25,7 +25,7 @@ except errors.ProgrammingError:
     pass
 
 try:
-    execute_query(user, password, host, "CREATE TABLE project_data (url VARCHAR(120) NOT NULL UNIQUE, time DATETIME, descCompress VARCHAR(200));")
+    execute_query(user, password, host, "CREATE TABLE project_description (url VARCHAR(120) NOT NULL UNIQUE, time DATETIME, descHash VARCHAR(100))")
 except errors.ProgrammingError:
     pass
 
