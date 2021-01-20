@@ -15,11 +15,7 @@ def get_hackathons(category: str = "sd") -> Set[str]:
     else:  # Setting the default url to Recently Added
         url = "https://devpost.com/hackathons?search=&challenge_type=all&sort_by=Recently+Added"
 
-    response = requests.get(url)
-    if response.status_code != 200:
-        return set()
-
-    html = response.text
+    html = get_html(url)
     tag = '<a class="clearfix" data-role="featured_challenge" href="'
 
     links: Set[str] = set()
@@ -42,8 +38,7 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
     :return: List of project urls
     """
 
-    if "https://" not in url and "http://" not in url:
-        url = "https://" + url
+    url = fix_url(url)
 
     links: Set[str] = set()
     tag = '<a class="block-wrapper-link fade link-to-software" href="'  # Tag we're looking for
@@ -53,12 +48,10 @@ def get_projects_hackathon(url: str, first_page: int = 1, last_page: int = 10000
         has_projects = False
 
         project_url = url.strip("/") + f"/project-gallery?page={page}"
-        response = requests.get(project_url)
+        html = get_html(project_url)
 
-        if response.status_code != 200:
+        if html == "":
             continue
-
-        html = response.text
 
         while tag in html:
             html = html[html.index(tag) + 58:]  # tag is 58 characters long
@@ -89,12 +82,9 @@ def get_projects_new(first_page: int = 1, last_page: int = 10000, max_links: int
     links: Set[str] = set()
 
     for page in range(first_page, last_page + 1):
-        response = requests.get(url + f"?page={page}")
         has_projects = False
 
-        if response.status_code != 200:
-            continue
-        html = response.text
+        html = get_html(url + f"?page={page}")
 
         while tag in html:
             html = html[html.index(tag) + 58:]
@@ -119,31 +109,14 @@ def get_description(url: str) -> str:
     :return: Description of the project
     """
 
-    if "https://" not in url and "http://" not in url:
-        url = "https://" + url
-
-    response = requests.get(url)
-
-    if response.status_code != 200:
-        return ""
-
-    html: str = response.text
-
+    html = get_html(url)
+    if html == "":
+        return html
     soup = BeautifulSoup(html, "html.parser")
     text = soup.get_text()
 
     text = text[text.index("Updates") + 8:text.index("Built With")].strip()
     return text
-
-    # # Parsing gets a little bit tricky, though all descriptions(I hope) start with the tag <h2> and ends in a </div>
-    # description: str = html[html.index("<h2>"):]
-    # description = description[:description.index("</div>")]
-    #
-    # tags = ["<h2>", "</h2>", "<p>", "</p>"]
-    # for tag in tags:
-    #     description = description.replace(tag, "")
-    #
-    # return description
 
 
 def get_links(url: str) -> Set[str]:
@@ -154,14 +127,9 @@ def get_links(url: str) -> Set[str]:
     :return:
     """
 
-    if "https://" not in url and "http://" not in url:
-        url = "https://" + url
-    response: requests.api = requests.get(url)
+    links: Set[str] = set()
 
-    if response.status_code != 200:
-        return set()
-
-    html: str = response.text
+    html = get_html(url)
     if '<ul data-role="software-urls" class="no-bullet">' not in html:
         return set()
 
@@ -169,7 +137,7 @@ def get_links(url: str) -> Set[str]:
     html = html[:html.index("</ul>")]
 
     tag = 'href='
-    links: Set[str] = set()
+
     while tag in html:
         html = html[html.index(tag) + 6:]
         links.add(html[:html.index('"')])
@@ -243,3 +211,26 @@ def get_github_files(user: str, repo: str) -> Set[str]:
             print(type)
 
     return files
+
+def fix_url(url: str) -> str:
+    """
+    Internal method to "fix" an url if it doesn't have the required components
+    :param url: Url you want to fix
+    :return: Fixed url
+    """
+
+    if "https://" not in url and "http://" not in url:
+        url = "https://" + url
+    return url
+
+def get_html(url: str) -> str:
+    """
+    Gets the html of a document
+    :param url: Url of the webpage
+    :return: Html of document
+    """
+    response = requests.get(fix_url(url))
+
+    if response.status_code != 200:
+        return ""
+    return response.text
