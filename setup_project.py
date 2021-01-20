@@ -25,12 +25,14 @@ except errors.DatabaseError as e:
 connection.database = "hack3"
 
 try:
-    cursor.execute("CREATE TABLE projects (url VARCHAR(120) NOT NULL UNIQUE, timeAdded DATETIME, descHash VARCHAR(100) NOT NULL);")
+    cursor.execute(
+        "CREATE TABLE projects (url VARCHAR(120) NOT NULL UNIQUE, timeAdded DATETIME, descHash VARCHAR(100) NOT NULL);")
 except errors.ProgrammingError as e:
     print(e)
 
 try:
-    cursor.execute("CREATE TABLE files (url VARCHAR(120) NOT NULL, timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, extension VARCHAR(10));")
+    cursor.execute(
+        "CREATE TABLE files (url VARCHAR(120) NOT NULL, timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, extension VARCHAR(10));")
 except errors.ProgrammingError as e:
     print(e)
 

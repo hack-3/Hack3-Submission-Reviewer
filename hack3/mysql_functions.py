@@ -20,42 +20,42 @@ def get_connection() -> mysql.connector:
     )
 
 
-def store_into_projects(cursor: cursor.MySQLCursor, url: str, descHash: str) -> None:
+def store_into_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
     """
     Stores an entry into the projects table
-    :param cursor: The cursor so we can open/close things outside of function
+    :param curs: The cursor so we can open/close things outside of function
     :param url: Url of project
-    :param descHash: Description Hash
+    :param desc_hash: Description Hash
     :return: None
     """
     try:
-        cursor.execute(
-            f"INSERT IGNORE INTO projects (url, timeAdded, descHash) VALUES ('{url}', '{datetime.today()}', '{descHash}');")
+        curs.execute(
+            f"INSERT IGNORE INTO projects (url, timeAdded, descHash) VALUES ('{url}', '{datetime.today()}', '{desc_hash}');")
     except Exception as e:
         print(e)
 
 
-def store_into_files(cursor: cursor.MySQLCursor, url: str, fileHash: str, extension: str) -> None:
+def store_into_files(curs: cursor.MySQLCursor, url: str, file_hash: str, extension: str) -> None:
     """
     Stores a file into the "files" table
-    :param cursor: The cursor so we can open/close things outside of function
+    :param curs: The cursor so we can open/close things outside of function
     :param url: Url of project
-    :param fileHash: File hash
+    :param file_hash: File hash
     :param extension: File extension
     :return: None
     """
     try:
-        cursor.execute(
-            f"INSERT IGNORE INTO files (url, timeAdded, fileHash, extension) VALUES ('{url}', '{datetime.today()}', '{fileHash}', '{extension}');")
+        curs.execute(
+            f"INSERT IGNORE INTO files (url, timeAdded, fileHash, extension) VALUES ('{url}', '{datetime.today()}', '{file_hash}', '{extension}');")
     except Exception as e:
         print(e)
 
 
-def get_unadded_urls(cursor: cursor.MySQLCursor) -> List[str]:
+def get_unadded_urls(curs: cursor.MySQLCursor) -> List[str]:
     """
     Gets the urls from projects table that haven't been added to the files table
-    :param cursor: The cursor so we can open/close things outside of function
+    :param curs: The cursor so we can open/close things outside of function
     :return: List of urls
     """
-    cursor.execute("SELECT url FROM projects WHERE url NOT IN (SELECT url FROM files);")
-    return [i[0] for i in cursor]
+    curs.execute("SELECT url FROM projects WHERE url NOT IN (SELECT url FROM files);")
+    return [i[0] for i in curs]

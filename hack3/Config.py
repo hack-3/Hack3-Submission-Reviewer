@@ -2,6 +2,9 @@ import json
 
 
 class Config:
+    """
+    A Singleton to allow multiple programs to read from the same data w/o having to read from the json file
+    """
     _instance = None
 
     def __new__(cls, *args, **kwargs):

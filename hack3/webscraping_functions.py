@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import requests
 from hack3 import Config
 
+
 def get_hackathons(category: str = "sd") -> Set[str]:
     """
     Gets the hackathons on devpost.com/hackathons front page.
@@ -145,43 +146,12 @@ def get_links(url: str) -> Set[str]:
     return links
 
 
-def get_github_files_deprecated(user: str, repo: str, path: str = "/") -> Set[str]:
-    """
-    Gets all of the files in a particular  repo
-    :param user: Owner of the repo
-    :param repo: Repo name
-    :param subdirectores: Any extra subdirectories
-    :return: All the files inside a directory
-    """
-
-    config = Config.Config()
-
-    files = set()
-    link = f"https://api.github.com/repos/{user}/{repo}/contents/{path}"
-
-    response = requests.get(link, headers={"Authorization": f"token {config.github}"})
-
-    if response.status_code != 200:
-        return files
-
-    data = response.json()
-
-    for item in data:
-
-        if item["type"] == "file":
-            files.add(item["download_url"])
-        elif item["type"] == "dir":
-            files.update(get_github_files_deprecated(user, repo, item["path"]))
-        else:
-            print(item["type"])
-
-    return files
-
-def get_github_files(user: str, repo: str) -> Set[str]:
+def get_github_files(user: str, repo: str, recursive: int = 3) -> Set[str]:
     """
     Returns a set of links to the dl or parsing of raw files
     :param user: Owner of the repo
     :param repo: Repo
+    :param recursive: Extra customizability for github api requests
     :return: Set of file links
     """
 
@@ -190,7 +160,8 @@ def get_github_files(user: str, repo: str) -> Set[str]:
     files = set()
     trees = set()
 
-    link = f"https://api.github.com/repos/{user}/{repo}/git/trees/master?recursive=3" # Only using recursive 3 cause yes
+    # Only has a recursion of 3 cause we don't neeeeed that many files, but we can increase it
+    link = f"https://api.github.com/repos/{user}/{repo}/git/trees/master?recursive={recursive}"
 
     response = requests.get(link, headers={"Authorization": f"token {config.github}"})
 
@@ -200,17 +171,18 @@ def get_github_files(user: str, repo: str) -> Set[str]:
     data = response.json()
 
     for leaf in data["tree"]:
-        type = leaf["type"]
+        type_ = leaf["type"]
         path = leaf["path"]
 
-        if type == "tree":
+        if type_ == "tree":
             trees.add(path)
-        elif type == "blob":
+        elif type_ == "blob":
             files.add(f"https://raw.githubusercontent.com/{user}/{repo}/master/{path.replace(' ', '%20')}")
         else:
-            print(type)
+            print(type_)
 
     return files
+
 
 def fix_url(url: str) -> str:
     """
@@ -222,6 +194,7 @@ def fix_url(url: str) -> str:
     if "https://" not in url and "http://" not in url:
         url = "https://" + url
     return url
+
 
 def get_html(url: str) -> str:
     """
