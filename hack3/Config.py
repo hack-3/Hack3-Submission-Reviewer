@@ -14,11 +14,6 @@ class Config:
             cls.user = data["user"]
             cls.password = data["password"]
             cls.host = data["host"]
+            cls.github = data["github"]
+
         return cls._instance
-
-
-if __name__ == "__main__":
-    config = Config()
-    print(config.user)
-    print(config.password)
-    print(config.host)

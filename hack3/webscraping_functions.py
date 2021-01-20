@@ -1,7 +1,7 @@
 from typing import Set
 from bs4 import BeautifulSoup
 import requests
-
+from hack3 import Config
 
 def get_hackathons(category: str = "sd") -> Set[str]:
     """
@@ -177,18 +177,69 @@ def get_links(url: str) -> Set[str]:
     return links
 
 
-if __name__ == "__main__":
-    print("Hacklathons: ")
-    print()
-    print("Hack3 Projects: ")
-    print(get_projects_hackathon("hack3.devpost.com/", max_links=10))
-    print()
-    print("New Projects: ")
-    print(get_projects_new(last_page=1))
-    print()
-    print("Description: ")
-    print(get_description('https://devpost.com/software/mask_pi_hack3'))
-    print()
-    print("Source Links: ")
-    print(get_links("https://devpost.com/software/ar-grapher"))
-    print(get_hackathons())
+def get_github_files_deprecated(user: str, repo: str, path: str = "/") -> Set[str]:
+    """
+    Gets all of the files in a particular  repo
+    :param user: Owner of the repo
+    :param repo: Repo name
+    :param subdirectores: Any extra subdirectories
+    :return: All the files inside a directory
+    """
+
+    config = Config.Config()
+
+    files = set()
+    link = f"https://api.github.com/repos/{user}/{repo}/contents/{path}"
+
+    response = requests.get(link, headers={"Authorization": f"token {config.github}"})
+
+    if response.status_code != 200:
+        return files
+
+    data = response.json()
+
+    for item in data:
+
+        if item["type"] == "file":
+            files.add(item["download_url"])
+        elif item["type"] == "dir":
+            files.update(get_github_files_deprecated(user, repo, item["path"]))
+        else:
+            print(item["type"])
+
+    return files
+
+def get_github_files(user: str, repo: str) -> Set[str]:
+    """
+    Returns a set of links to the dl or parsing of raw files
+    :param user: Owner of the repo
+    :param repo: Repo
+    :return: Set of file links
+    """
+
+    config = Config.Config()
+
+    files = set()
+    trees = set()
+
+    link = f"https://api.github.com/repos/{user}/{repo}/git/trees/master?recursive=3" # Only using recursive 3 cause yes
+
+    response = requests.get(link, headers={"Authorization": f"token {config.github}"})
+
+    if response.status_code != 200:
+        return files
+
+    data = response.json()
+
+    for leaf in data["tree"]:
+        type = leaf["type"]
+        path = leaf["path"]
+
+        if type == "tree":
+            trees.add(path)
+        elif type == "blob":
+            files.add(f"https://raw.githubusercontent.com/{user}/{repo}/master/{path.replace(' ', '%20')}")
+        else:
+            print(type)
+
+    return files

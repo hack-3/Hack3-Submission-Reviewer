@@ -68,11 +68,12 @@ def hash_descriptions():
 
     for link in urls:
         description = webscraping_functions.get_description(link)
+        h1 = tlsh.hash(description.encode('utf-8'))
 
-        curs.execute(f"INSERT INTO project_description (url, time, descHash) VALUES ('{link}', '{datetime.today()}', '{tlsh.hash(description.encode('utf-8'))}')")
+        curs.execute(
+            f"INSERT INTO project_description (url, time, descHash) VALUES ('{link}', '{datetime.today()}', '{h1 if h1 != 'TNULL' else f'N{description}'}')")
 
     connection.commit()
 
     curs.close()
     connection.close()
-
