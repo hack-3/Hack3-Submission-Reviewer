@@ -1,3 +1,5 @@
+from typing import List
+
 from hack3 import mysql_functions
 from hack3 import webscraping_functions
 import time
@@ -46,9 +48,17 @@ def get_description_hash(url: str) -> str:
     :return: None
     """
     description = webscraping_functions.get_description(url)
-    h1 = tlsh.hash(description.encode("utf-8"))
+    return get_string_hash(description)
 
-    return h1 if h1 != "TNULL" else f"N{description}"
+
+def get_string_hash(string: str) -> str:
+    """
+    Returns the hash of a string
+    :param string: String you want hashed
+    :return: Hashed String
+    """
+    h1 = tlsh.hash(string.encode("utf-8"))
+    return h1 if h1 != "TNULL" else f"N{string}"
 
 
 def store_files() -> None:
@@ -56,3 +66,77 @@ def store_files() -> None:
     Stores and Hashes all of the files taken from github
     :return: None
     """
+    connection = mysql_functions.get_connection()
+    cursor = connection.cursor()
+
+    devpost_links = mysql_functions.get_unadded_urls(cursor)
+    cursor.close()
+
+    cursor = connection.cursor()
+
+
+    for link in devpost_links:
+        sources = webscraping_functions.get_links(link)
+
+        for source in sources:
+
+            if source.startswith("https://github.com"):
+                store_github(cursor, source, link)
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+
+def store_github(curs, github_url: str, devpost_url: str) -> None:
+    """
+    Stores all(not really) of the files associated with the github url
+    :param curs: Cursor
+    :param github_url: Url of github repo
+    :param devpost_url: Url of devpost
+    :return: None
+    """
+    disallowed_extensions = {"wav", "zip", "gif"}
+
+    if "github" in github_url:
+        args = github_url[github_url.index("github"):].split('/')
+        if len(args) < 3:
+            print(github_url)
+            return
+
+        files = webscraping_functions.get_github_files(args[1], args[2])
+
+        for link in files:
+            args = link[link.index("github"):].split('/')
+
+            user = args[1]
+            repo = args[2]
+            file = args[-1]
+            file_body = get_file_info(file)
+
+            if file_body[1] in disallowed_extensions:
+                continue
+
+            html = webscraping_functions.get_html(link)
+            h1 = get_string_hash(html)
+
+            github_repo = f"https://github.com/{user}/{repo}"
+
+            mysql_functions.store_into_files(curs, github_repo, devpost_url, h1, file_body[0], file_body[1])
+
+
+def get_file_info(file: str) -> List[str]:
+    """
+    Gets the file info, extension + name
+    :param file: File
+    :return: List[file name, file extension]
+    """
+    file = file.split(".")
+    if len(file) == 1:
+        file.append("")
+    if len(file) > 2:
+        extension = file.pop()
+        file = ['.'.join(file), extension]
+
+    return file
