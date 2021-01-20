@@ -131,6 +131,7 @@ def get_links(url: str) -> Set[str]:
     links: Set[str] = set()
 
     html = get_html(url)
+
     if '<ul data-role="software-urls" class="no-bullet">' not in html:
         return set()
 
@@ -169,6 +170,9 @@ def get_github_files(user: str, repo: str, recursive: int = 3) -> Set[str]:
         return files
 
     data = response.json()
+
+    if "message" in data and data["message"] == "Not Found":
+        return files
 
     for leaf in data["tree"]:
         type_ = leaf["type"]

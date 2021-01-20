@@ -1,12 +1,6 @@
 import json
-import subprocess
-import sys
 import mysql
 from mysql.connector import errors
-
-# Gets the required libraries from
-# subprocess.check_call([sys.executable, "-m", "pip", "install", "mysql-connector-python"])
-# subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
 
 # Gets mysql tables and stuff sort out
 user = input("username: ")
@@ -32,7 +26,7 @@ except errors.ProgrammingError as e:
 
 try:
     cursor.execute(
-        "CREATE TABLE files (url VARCHAR(120) NOT NULL, timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, fileName VARCHAR(30), extension VARCHAR(10));")
+        "CREATE TABLE files (githubUrl VARCHAR(120) NOT NULL, devpostUrl VARCHAR(120), timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, fileName VARCHAR(30), extension VARCHAR(10));")
 except errors.ProgrammingError as e:
     print(e)
 

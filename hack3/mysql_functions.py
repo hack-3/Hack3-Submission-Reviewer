@@ -35,7 +35,7 @@ def store_into_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> N
         print(e)
 
 
-def store_into_files(curs: cursor.MySQLCursor, url: str, file_hash: str, extension: str) -> None:
+def store_into_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl:str, file_hash: str, file_name: str, extension: str) -> None:
     """
     Stores a file into the "files" table
     :param curs: The cursor so we can open/close things outside of function
@@ -46,7 +46,7 @@ def store_into_files(curs: cursor.MySQLCursor, url: str, file_hash: str, extensi
     """
     try:
         curs.execute(
-            f"INSERT IGNORE INTO files (url, timeAdded, fileHash, extension) VALUES ('{url}', '{datetime.today()}', '{file_hash}', '{extension}');")
+            f"INSERT IGNORE INTO files (githubUrl, devpostUrl, timeAdded, fileHash, fileName, extension) VALUES ('{githubUrl}', '{devpostUrl}', '{datetime.today()}', '{file_hash}', '{file_name}', '{extension}');")
     except Exception as e:
         print(e)
 
@@ -58,4 +58,6 @@ def get_unadded_urls(curs: cursor.MySQLCursor) -> List[str]:
     :return: List of urls
     """
     curs.execute("SELECT url FROM projects WHERE url NOT IN (SELECT url FROM files);")
+    # return [i[0] for i in curs]
     return [i[0] for i in curs]
+    # return ["https://devpost.com/software/coursecake"]
