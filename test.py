@@ -27,4 +27,4 @@ import tlsh
 #             print(j[0], l[0], diff)
 
 # misc_functions.monitor_site()
-misc_functions.store_projects_batch(ending_page=999, max_links=30)
+misc_functions.store_projects_batch(ending_page=999, max_links=100)

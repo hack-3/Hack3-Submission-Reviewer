@@ -32,7 +32,7 @@ except errors.ProgrammingError as e:
 
 try:
     cursor.execute(
-        "CREATE TABLE files (url VARCHAR(120) NOT NULL, timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, extension VARCHAR(10));")
+        "CREATE TABLE files (url VARCHAR(120) NOT NULL, timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, fileName VARCHAR(30), extension VARCHAR(10));")
 except errors.ProgrammingError as e:
     print(e)
 
