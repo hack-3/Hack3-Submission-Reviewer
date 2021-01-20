@@ -1,9 +1,8 @@
 import json
 import subprocess
 import sys
-
+import mysql
 from mysql.connector import errors
-from hack3.mysql_setup_functions import create_database, execute_query
 
 # Gets the required libraries from
 # subprocess.check_call([sys.executable, "-m", "pip", "install", "mysql-connector-python"])
@@ -15,20 +14,25 @@ password = input("password: ")
 host = input("Server ip/host: ")
 github_token = input("Github Token: ")
 
-try:
-    create_database(user, password, host)
-except errors.DatabaseError:
-    pass
+connection = mysql.connector.connect(user=user, password=password, host=host)
+cursor = connection.cursor()
 
 try:
-    execute_query(user, password, host, "CREATE TABLE project_url (url VARCHAR(120) NOT NULL UNIQUE, time DATETIME);")
-except errors.ProgrammingError:
-    pass
+    cursor.execute("CREATE DATABASE hack3")
+except errors.DatabaseError as e:
+    print(e)
+
+connection.database = "hack3"
 
 try:
-    execute_query(user, password, host, "CREATE TABLE project_description (url VARCHAR(120) NOT NULL UNIQUE, time DATETIME, descHash VARCHAR(100))")
-except errors.ProgrammingError:
-    pass
+    cursor.execute("CREATE TABLE projects (url VARCHAR(120) NOT NULL UNIQUE, timeAdded DATETIME, descHash VARCHAR(100) NOT NULL);")
+except errors.ProgrammingError as e:
+    print(e)
+
+try:
+    cursor.execute("CREATE TABLE files (url VARCHAR(120) NOT NULL, timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, extension VARCHAR(10));")
+except errors.ProgrammingError as e:
+    print(e)
 
 with open("storage.json", "w") as f:
     json.dump({"user": user, "password": password, "host": host, "github": github_token}, f)

@@ -1,5 +1,4 @@
-from hack3 import mysql_functions
-from hack3 import webscraping_functions
+from hack3 import misc_functions, mysql_functions, webscraping_functions
 import tlsh
 
 # # mysql_functions.store_urls_batch(ending_page=9999, max_links=200)
@@ -27,4 +26,4 @@ import tlsh
 #         if diff < 50:
 #             print(j[0], l[0], diff)
 
-print(webscraping_functions.get_github_files("O-of", "Sudoku"))
+misc_functions.store_projects_batch(ending_page=999, max_links=100)
