@@ -19,4 +19,6 @@ class Config:
             cls.host = data["host"]
             cls.github = data["github"]
 
+            cls.disallowed_extensions = {"wav", "zip", "gif", "aia", "pdf", "h5", "caffemodel", "model", "dat", "tar", "pth", "pptx"}
+
         return cls._instance

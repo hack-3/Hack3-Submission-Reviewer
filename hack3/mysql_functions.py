@@ -35,7 +35,8 @@ def store_into_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> N
         print(e)
 
 
-def store_into_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl:str, file_hash: str, file_name: str, extension: str) -> None:
+def store_into_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
+                     extension: str) -> None:
     """
     Stores a file into the "files" table
     :param curs: The cursor so we can open/close things outside of function
@@ -57,7 +58,5 @@ def get_unadded_urls(curs: cursor.MySQLCursor) -> List[str]:
     :param curs: The cursor so we can open/close things outside of function
     :return: List of urls
     """
-    curs.execute("SELECT url FROM projects WHERE url NOT IN (SELECT url FROM files);")
-    # return [i[0] for i in curs]
+    curs.execute("SELECT url FROM projects WHERE url NOT IN (SELECT devpostUrl FROM files);")
     return [i[0] for i in curs]
-    # return ["https://devpost.com/software/coursecake"]

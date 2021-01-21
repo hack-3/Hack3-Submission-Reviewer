@@ -2,6 +2,7 @@ from typing import List
 
 from hack3 import mysql_functions
 from hack3 import webscraping_functions
+from hack3 import Config
 import time
 import tlsh
 
@@ -74,14 +75,13 @@ def store_files() -> None:
 
     cursor = connection.cursor()
 
-
     for link in devpost_links:
         sources = webscraping_functions.get_links(link)
 
         for source in sources:
-
             if source.startswith("https://github.com"):
                 store_github(cursor, source, link)
+                connection.commit()
 
     connection.commit()
 
@@ -97,7 +97,7 @@ def store_github(curs, github_url: str, devpost_url: str) -> None:
     :param devpost_url: Url of devpost
     :return: None
     """
-    disallowed_extensions = {"wav", "zip", "gif"}
+    config = Config.Config()
 
     if "github" in github_url:
         args = github_url[github_url.index("github"):].split('/')
@@ -107,7 +107,12 @@ def store_github(curs, github_url: str, devpost_url: str) -> None:
 
         files = webscraping_functions.get_github_files(args[1], args[2])
 
+        print(args[1], args[2])
+
         for link in files:
+            if "venv" in link or ".idea" in link:
+                continue
+
             args = link[link.index("github"):].split('/')
 
             user = args[1]
@@ -115,7 +120,9 @@ def store_github(curs, github_url: str, devpost_url: str) -> None:
             file = args[-1]
             file_body = get_file_info(file)
 
-            if file_body[1] in disallowed_extensions:
+            print(file_body)
+
+            if file_body[1] in config.disallowed_extensions:
                 continue
 
             html = webscraping_functions.get_html(link)
