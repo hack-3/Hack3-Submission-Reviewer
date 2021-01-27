@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 import mysql.connector
 from mysql.connector import cursor
 from datetime import datetime
@@ -60,3 +60,24 @@ def get_unadded_urls(curs: cursor.MySQLCursor) -> List[str]:
     """
     curs.execute("SELECT url FROM projects WHERE url NOT IN (SELECT devpostUrl FROM files);")
     return [i[0] for i in curs]
+
+def get_descriptions(curs: cursor.MySQLCursor, url: str) -> List[Tuple[str]]:
+    """
+    Used to get the description hashes from the mysql database
+    :param curs: The cursor so we can open/close things outside of function
+    :param url: Url of the function so we don't include it
+    :return: List of (url, hash)
+    """
+    curs.execute(f"SELECT url, descHash FROM projects WHERE url != '{url}'")
+    return [i for i in curs]
+
+def get_files_by_ext(curs: cursor.MySQLCursor, devpostUrl: str, extension: str) -> List[Tuple[str]]:
+    """
+    Used to get the hashes of files by a file extension
+    :param curs: The cursor so we can open/close things outside of function
+    :param devpostUrl: Devpost url so we don't compare identical files
+    :param extension: Extension of the file
+    :return: Files matching a particular extension
+    """
+    curs.execute(f"SELECT githubUrl, devpostUrl, fileName, fileHash FROM files WHERE extension = '{extension}' AND devpostUrl != '{devpostUrl}'")
+    return [i for i in curs]

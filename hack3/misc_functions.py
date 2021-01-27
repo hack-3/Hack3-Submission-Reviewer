@@ -1,5 +1,5 @@
 from typing import List
-
+from fuzzywuzzy import fuzz
 from hack3 import mysql_functions
 from hack3 import webscraping_functions
 from hack3 import Config
@@ -120,8 +120,6 @@ def store_github(curs, github_url: str, devpost_url: str) -> None:
             file = args[-1]
             file_body = get_file_info(file)
 
-            print(file_body)
-
             if file_body[1] in config.disallowed_extensions:
                 continue
 
@@ -147,3 +145,87 @@ def get_file_info(file: str) -> List[str]:
         file = ['.'.join(file), extension]
 
     return file
+
+
+def check_project(url: str):
+    """
+    Checks a particular project from a devpost site
+    :param url: devpost.com/software/something
+    :return: None
+    """
+    description = webscraping_functions.get_description(url)
+    links = webscraping_functions.get_links(url)
+
+    desc_hash = tlsh.hash(description.encode("utf-8"))
+    files = set()
+
+    for link in links:
+        if "github" in link:
+            args = link[link.index("github"):].split('/')
+            if len(args) < 3:
+                print(link)
+                return
+
+            files = webscraping_functions.get_github_files(args[1], args[2])
+
+            print(args[1], args[2])
+
+            files.update(webscraping_functions.get_github_files(args[1], args[2]))
+
+    connection = mysql_functions.get_connection()
+    curs = connection.cursor()
+
+    if desc_hash == "TNULL":
+        desc_hash = "N" + description
+        print(f"{url}'s description is too short to be hashed!")
+
+    d = mysql_functions.get_descriptions(curs, url)
+    for i in d:
+        other_hash = i[1]
+
+        if other_hash[0] == desc_hash[0] == "T":
+            diff = tlsh.diff(other_hash, desc_hash)
+            if diff <= 50:  # change var to whatever you want
+                print(f"File description seems to match with {i[0]} with diff {diff}")
+
+        elif other_hash[0] == desc_hash[0] == "N":
+            ratio = fuzz.ratio(other_hash, desc_hash)
+
+            if ratio >= 0.8:
+                print(f"File description seems to match with {i[0]} similarity {ratio}")
+
+    config = Config.Config()
+
+    for f in files:
+        html = webscraping_functions.get_html(f)
+        file_hash = get_string_hash(html)
+
+        args = f[f.index("git"):].split('/')
+
+        user = args[1]
+        repo = args[2]
+        file = args[-1]
+        file_body = get_file_info(file)
+
+        if file_body[1] in config.disallowed_extensions:
+            continue
+
+        link = f"https://github.com/{user}/{repo}"
+
+        if file_hash == 'TNULL':
+            file_hash = "N" + html
+
+        for i in mysql_functions.get_files_by_ext(curs, url, file_body[1]):
+            if i[0] == link:
+                print(f"Project is using the same github as another: {i[3]} Devpost: {i[1]}")
+
+            if i[3] == desc_hash[0] == "T":
+                diff = tlsh.diff(i[3], desc_hash)
+                if diff <= 50:  # change var to whatever you want
+                    print(f"File seems to match with {i[2]} with diff {diff} from {i[0]} from {i[1]}")
+
+            elif i[3] == desc_hash[0] == "N":
+                ratio = fuzz.ratio(i[3], desc_hash)
+
+                if ratio >= 0.8:
+                    print(f"File description seems to match with {i[2]} similarity {ratio} from {i[0]} from {i[1]}")
