@@ -1,6 +1,6 @@
 from typing import List, Tuple
 import mysql.connector
-from mysql.connector import cursor
+from mysql.connector import cursor, errors
 from datetime import datetime
 from core import config
 
@@ -46,6 +46,20 @@ def store_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_
     try:
         curs.execute(
             f"INSERT IGNORE INTO files (githubUrl, devpostUrl, timeAdded, fileHash, fileName, extension) VALUES ('{githubUrl}', '{devpostUrl}', '{datetime.today()}', '{file_hash}', '{file_name}', '{extension}');")
+    except Exception as e:
+        print(e)
+
+
+def store_files_ext(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
+                    extension: str) -> None:
+    try:
+        curs.execute(
+            f"INSERT IGNORE INTO {extension} (githubUrl, devpostUrl, timeAdded, fileHash, fileName) VALUES ('{githubUrl}', '{devpostUrl}', '{datetime.today()}', '{file_hash}', '{file_name}')")
+    except errors.ProgrammingError:
+        curs.execute(
+            f"CREATE TABLE {extension} (githubUrl VARCHAR(120) NOT NULL, devpostUrl VARCHAR(120), timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, fileName VARCHAR(30))")
+        curs.execute(
+            f"INSERT IGNORE INTO {extension} (githubUrl, devpostUrl, timeAdded, fileHash, fileName) VALUES ('{githubUrl}', '{devpostUrl}', '{datetime.today()}', '{file_hash}', '{file_name}')")
     except Exception as e:
         print(e)
 

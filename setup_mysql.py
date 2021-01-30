@@ -1,4 +1,3 @@
-import json
 import mysql
 from mysql.connector import errors
 from core import config
