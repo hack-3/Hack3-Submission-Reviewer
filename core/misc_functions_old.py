@@ -1,8 +1,8 @@
 from typing import List
 from fuzzywuzzy import fuzz
-from hack3 import mysql_functions
-from hack3 import webscraping_functions
-from hack3 import Config
+from core import mysql_functions_old
+from core import webscraping_functions_old
+from core import Config_old
 import time
 import tlsh
 
@@ -26,15 +26,15 @@ def store_projects_batch(starting_page=1, ending_page=10, max_links=999999) -> N
     :param max_links: Maximum amount of links you want to gather
     :return: None
     """
-    links = webscraping_functions.get_projects_new(starting_page, ending_page, max_links)
+    links = webscraping_functions_old.get_projects_new(starting_page, ending_page, max_links)
 
-    connection = mysql_functions.get_connection()
+    connection = mysql_functions_old.get_connection()
     cursor = connection.cursor()
 
     for url in links:
         desc_hash = get_description_hash(url)
 
-        mysql_functions.store_into_projects(cursor, url, desc_hash)
+        mysql_functions_old.store_into_projects(cursor, url, desc_hash)
 
     connection.commit()
 
@@ -48,7 +48,7 @@ def get_description_hash(url: str) -> str:
     :param url: Project url
     :return: None
     """
-    description = webscraping_functions.get_description(url)
+    description = webscraping_functions_old.get_description(url)
     return get_string_hash(description)
 
 
@@ -67,16 +67,16 @@ def store_files() -> None:
     Stores and Hashes all of the files taken from github
     :return: None
     """
-    connection = mysql_functions.get_connection()
+    connection = mysql_functions_old.get_connection()
     cursor = connection.cursor()
 
-    devpost_links = mysql_functions.get_unadded_urls(cursor)
+    devpost_links = mysql_functions_old.get_unadded_urls(cursor)
     cursor.close()
 
     cursor = connection.cursor()
 
     for link in devpost_links:
-        sources = webscraping_functions.get_links(link)
+        sources = webscraping_functions_old.get_links(link)
 
         for source in sources:
             if source.startswith("https://github.com"):
@@ -97,7 +97,7 @@ def store_github(curs, github_url: str, devpost_url: str) -> None:
     :param devpost_url: Url of devpost
     :return: None
     """
-    config = Config.Config()
+    config = Config_old.Config()
 
     if "github" in github_url:
         args = github_url[github_url.index("github"):].split('/')
@@ -105,7 +105,7 @@ def store_github(curs, github_url: str, devpost_url: str) -> None:
             print(github_url)
             return
 
-        files = webscraping_functions.get_github_files(args[1], args[2])
+        files = webscraping_functions_old.get_github_files(args[1], args[2])
 
         print(args[1], args[2])
 
@@ -123,12 +123,12 @@ def store_github(curs, github_url: str, devpost_url: str) -> None:
             if file_body[1] in config.disallowed_extensions:
                 continue
 
-            html = webscraping_functions.get_html(link)
+            html = webscraping_functions_old.get_html(link)
             h1 = get_string_hash(html)
 
             github_repo = f"https://github.com/{user}/{repo}"
 
-            mysql_functions.store_into_files(curs, github_repo, devpost_url, h1, file_body[0], file_body[1])
+            mysql_functions_old.store_into_files(curs, github_repo, devpost_url, h1, file_body[0], file_body[1])
 
 
 def get_file_info(file: str) -> List[str]:
@@ -153,8 +153,8 @@ def check_project(url: str):
     :param url: devpost.com/software/something
     :return: None
     """
-    description = webscraping_functions.get_description(url)
-    links = webscraping_functions.get_links(url)
+    description = webscraping_functions_old.get_description(url)
+    links = webscraping_functions_old.get_links(url)
 
     desc_hash = tlsh.hash(description.encode("utf-8"))
     files = set()
@@ -166,20 +166,20 @@ def check_project(url: str):
                 print(link)
                 return
 
-            files = webscraping_functions.get_github_files(args[1], args[2])
+            files = webscraping_functions_old.get_github_files(args[1], args[2])
 
             print(args[1], args[2])
 
-            files.update(webscraping_functions.get_github_files(args[1], args[2]))
+            files.update(webscraping_functions_old.get_github_files(args[1], args[2]))
 
-    connection = mysql_functions.get_connection()
+    connection = mysql_functions_old.get_connection()
     curs = connection.cursor()
 
     if desc_hash == "TNULL":
         desc_hash = "N" + description
         print(f"{url}'s description is too short to be hashed!")
 
-    d = mysql_functions.get_descriptions(curs, url)
+    d = mysql_functions_old.get_descriptions(curs, url)
     for i in d:
         other_hash = i[1]
 
@@ -194,10 +194,10 @@ def check_project(url: str):
             if ratio >= 0.8:
                 print(f"File description seems to match with {i[0]} similarity {ratio}")
 
-    config = Config.Config()
+    config = Config_old.Config()
 
     for f in files:
-        html = webscraping_functions.get_html(f)
+        html = webscraping_functions_old.get_html(f)
         file_hash = get_string_hash(html)
 
         args = f[f.index("git"):].split('/')
@@ -215,7 +215,7 @@ def check_project(url: str):
         if file_hash == 'TNULL':
             file_hash = "N" + html
 
-        for i in mysql_functions.get_files_by_ext(curs, url, file_body[1]):
+        for i in mysql_functions_old.get_files_by_ext(curs, url, file_body[1]):
             if i[0] == link:
                 print(f"Project is using the same github as another: {i[3]} Devpost: {i[1]}")
 

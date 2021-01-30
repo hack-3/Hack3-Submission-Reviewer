@@ -1,7 +1,7 @@
 from typing import Set
 from bs4 import BeautifulSoup
 import requests
-from hack3 import Config
+from core import Config_old
 
 
 def get_hackathons(category: str = "sd") -> Set[str]:
@@ -156,7 +156,7 @@ def get_github_files(user: str, repo: str, recursive: int = 3) -> Set[str]:
     :return: Set of file links
     """
 
-    config = Config.Config()
+    config = Config_old.Config()
 
     files = set()
     trees = set()

@@ -2,7 +2,7 @@ from typing import List, Tuple
 import mysql.connector
 from mysql.connector import cursor
 from datetime import datetime
-from hack3.Config import Config
+from core.Config_old import Config
 
 
 def get_connection() -> mysql.connector:
@@ -16,7 +16,7 @@ def get_connection() -> mysql.connector:
     return mysql.connector.connect(
         user=config.user, password=config.password,
         host=config.host,
-        database="hack3"
+        database="core"
     )
 
 
