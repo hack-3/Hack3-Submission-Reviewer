@@ -1,4 +1,4 @@
-from core import misc_functions_old, mysql_functions_old, webscraping_functions_old
+from core import misc_functions_old, mysql_functions_old, webscraping_functions_old, webscraping_functions
 import tlsh
 
 # # mysql_functions.store_urls_batch(ending_page=9999, max_links=200)
@@ -41,5 +41,7 @@ import tlsh
 # print(webscraping_functions.get_links("https://devpost.com/software/coursecake"))
 
 # misc_functions.check_project("https://devpost.com/software/multi-camera-smart-surveillance-network-xypa6j")
-misc_functions_old.store_projects_batch(starting_page=1, ending_page=999, max_links=5)
+# misc_functions_old.store_projects_batch(starting_page=1, ending_page=999, max_links=5)
 # misc_functions.store_files()
+
+print(webscraping_functions.get_links("https://devpost.com/software/dr-helper"))

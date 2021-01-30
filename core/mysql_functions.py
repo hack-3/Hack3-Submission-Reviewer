@@ -2,25 +2,23 @@ from typing import List, Tuple
 import mysql.connector
 from mysql.connector import cursor
 from datetime import datetime
-from core.Config_old import Config
+from core import config
 
 
 def get_connection() -> mysql.connector:
     """
-    Returns a connection to a server
+    Returns a connection to the mysql server
     :return: mysql.connector
     """
-
-    config = Config()
 
     return mysql.connector.connect(
         user=config.user, password=config.password,
         host=config.host,
-        database="core"
+        database="hack3"
     )
 
 
-def store_into_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
+def store_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
     """
     Stores an entry into the projects table
     :param curs: The cursor so we can open/close things outside of function
@@ -35,8 +33,8 @@ def store_into_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> N
         print(e)
 
 
-def store_into_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
-                     extension: str) -> None:
+def store_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
+                extension: str) -> None:
     """
     Stores a file into the "files" table
     :param curs: The cursor so we can open/close things outside of function
