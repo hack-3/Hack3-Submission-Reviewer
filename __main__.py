@@ -1,4 +1,4 @@
-from hack3.misc_functions import *
+from core.misc_functions_old import *
 
 type_ = input("xx: ")
 
