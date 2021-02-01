@@ -84,7 +84,6 @@ def check_file(url: str) -> Tuple[List[str], List[Tuple[str]]]:
     for dHash in mysql_functions.get_descriptions(cursor, url):
 
         if misc_functions.check_diff(descHash, dHash[1]):
-            print(dHash)
             desc.append(dHash[0])
 
     file_ = []
@@ -93,9 +92,7 @@ def check_file(url: str) -> Tuple[List[str], List[Tuple[str]]]:
         fHash = misc_functions.get_string_hash(webscraping_functions.get_html(file))
 
         for f in mysql_functions.get_files_by_ext(cursor, file_ext, url):
-
             if misc_functions.check_diff(fHash, f[3]):
-                print(f)
                 file_.append(f)
 
     return desc, file_
