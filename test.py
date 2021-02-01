@@ -1,5 +1,4 @@
-from core import misc_functions_old, mysql_functions_old, webscraping_functions_old, webscraping_functions
-import tlsh
+from core import mysql_functions, webscraping_functions, misc_functions, core_functions
 
 # # mysql_functions.store_urls_batch(ending_page=9999, max_links=200)
 #
@@ -44,4 +43,23 @@ import tlsh
 # misc_functions_old.store_projects_batch(starting_page=1, ending_page=999, max_links=5)
 # misc_functions.store_files()
 
-print(webscraping_functions.get_links("https://devpost.com/software/dr-helper"))
+# print(webscraping_functions.get_links("https://devpost.com/software/dr-helper"))
+
+con = mysql_functions.get_connection()
+curs = con.cursor()
+
+url = "https://devpost.com/software/test2-vpbr5s"
+
+core_functions.check_file(url)
+
+
+# desc_hash = misc_functions.get_description_hash(url)
+# mysql_functions.store_project(curs, url, desc_hash)
+
+# core_functions.store_projects_batch(max_links=5)
+
+# core_functions.store_files()
+
+# con.commit()
+con.close()
+curs.close()

@@ -18,7 +18,7 @@ def get_connection() -> mysql.connector:
     )
 
 
-def store_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
+def store_project(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
     """
     Stores an entry into the projects table
     :param curs: The cursor so we can open/close things outside of function
@@ -33,7 +33,7 @@ def store_projects(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
         print(e)
 
 
-def store_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
+def store_file(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
                 extension: str) -> None:
     """
     Stores a file into the "files" table
@@ -50,7 +50,7 @@ def store_files(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_
         print(e)
 
 
-def store_files_ext(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
+def store_file_ext(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
                     extension: str) -> None:
     try:
         curs.execute(
@@ -85,7 +85,7 @@ def get_descriptions(curs: cursor.MySQLCursor, url: str) -> List[Tuple[str]]:
     return [i for i in curs]
 
 
-def get_files_by_ext(curs: cursor.MySQLCursor, devpostUrl: str, extension: str) -> List[Tuple[str]]:
+def get_files_by_ext(curs: cursor.MySQLCursor, extension: str, devpostUrl: str = "") -> List[Tuple[str]]:
     """
     Used to get the hashes of files by a file extension
     :param curs: The cursor so we can open/close things outside of function

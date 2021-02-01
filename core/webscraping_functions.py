@@ -98,7 +98,8 @@ def get_github_files(user: str, repo: str, recursive: int = 3) -> Set[str]:
 
     branch = "master"
     if r1.status_code == 200:
-        branch = r1.json()[0]["name"]
+        if (len(r1.json()) > 0):
+            branch = r1.json()[0]["name"]
 
     # Only has a recursion of 3 cause we don't neeeeed that many files, but we can increase it
     link = f"https://api.github.com/repos/{user}/{repo}/git/trees/{branch}?recursive={recursive}"

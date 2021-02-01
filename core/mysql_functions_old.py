@@ -62,7 +62,7 @@ def get_unadded_urls(curs: cursor.MySQLCursor) -> List[str]:
     return [i[0] for i in curs]
 
 
-def get_descriptions(curs: cursor.MySQLCursor, url: str) -> List[Tuple[str]]:
+def get_descriptions(curs: cursor.MySQLCursor, url: str = "") -> List[Tuple[str]]:
     """
     Used to get the description hashes from the mysql database
     :param curs: The cursor so we can open/close things outside of function
@@ -73,7 +73,7 @@ def get_descriptions(curs: cursor.MySQLCursor, url: str) -> List[Tuple[str]]:
     return [i for i in curs]
 
 
-def get_files_by_ext(curs: cursor.MySQLCursor, devpostUrl: str, extension: str) -> List[Tuple[str]]:
+def get_files_by_ext(curs: cursor.MySQLCursor, extension: str, devpostUrl: str = "") -> List[Tuple[str]]:
     """
     Used to get the hashes of files by a file extension
     :param curs: The cursor so we can open/close things outside of function

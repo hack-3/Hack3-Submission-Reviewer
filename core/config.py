@@ -20,9 +20,11 @@ host = data["host"]
 
 github = data["github"]
 
-disallowed_extensions = {"wav", "zip", "gif", "aia", "pdf", "h5", "caffemodel", "model", "dat", "tar", "pth", "pptx"}
+disallowed_extensions = {"wav", "zip", "gif", "aia", "pdf", "h5", "caffemodel", "model", "dat", "tar", "pth", "pptx",
+                         "exe", "md", "jpg"}
 
-def update_config(user_ = None, password_ = None, host_ = None, github_ = None):
+
+def update_config(user_=None, password_=None, host_=None, github_=None):
     global user, password, host, github, data
 
     if user_:
