@@ -78,6 +78,7 @@ def get_links(url: str) -> Set[str]:
         html = html[html.index(tag) + 6:]
         links.add(html[:html.index('"')])
 
+    print(links)
     return links
 
 

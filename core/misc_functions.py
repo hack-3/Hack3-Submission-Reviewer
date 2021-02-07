@@ -64,6 +64,7 @@ def get_only_github(url: str) -> List[str]:
     """
 
     urls = webscraping_functions.get_links(url)
+
     return [u for u in urls if "github" in u]
 
 

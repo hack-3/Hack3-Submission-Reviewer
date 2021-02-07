@@ -34,7 +34,7 @@ def store_project(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
 
 
 def store_file(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
-                extension: str) -> None:
+               extension: str) -> None:
     """
     Stores a file into the "files" table
     :param curs: The cursor so we can open/close things outside of function
@@ -51,7 +51,7 @@ def store_file(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_h
 
 
 def store_file_ext(curs: cursor.MySQLCursor, githubUrl: str, devpostUrl: str, file_hash: str, file_name: str,
-                    extension: str) -> None:
+                   extension: str) -> None:
     try:
         curs.execute(
             f"INSERT IGNORE INTO {extension} (githubUrl, devpostUrl, timeAdded, fileHash, fileName) VALUES ('{githubUrl}', '{devpostUrl}', '{datetime.today()}', '{file_hash}', '{file_name}')")
@@ -95,4 +95,21 @@ def get_files_by_ext(curs: cursor.MySQLCursor, extension: str, devpostUrl: str =
     """
     curs.execute(
         f"SELECT githubUrl, devpostUrl, fileName, fileHash FROM files WHERE extension = '{extension}' AND devpostUrl != '{devpostUrl}'")
-    return [i for i in curs]
+    return curs.fetchall()
+
+
+def get_files_ext_table(curs: cursor.MySQLCursor, extension: str, devpostUrl: str = "") -> List[Tuple[str]]:
+    """
+    Used to get the hashes of files within a table of an extension
+    :param curs: The cursor so we can open/close things outside of function
+    :param devpostUrl: Devpost url so we don't compare identical files
+    :param extension: Extension of the file
+    :return: Files matching a particular extension
+    """
+
+    try:
+        curs.execute(
+            f"SELECT githubUrl, devpostUrl, fileName, fileHash FROM {extension} WHERE devpostUrl != '{devpostUrl}'")
+        return curs.fetchall()
+    except errors.ProgrammingError:
+        return []

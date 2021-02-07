@@ -45,13 +45,21 @@ from core import mysql_functions, webscraping_functions, misc_functions, core_fu
 
 # print(webscraping_functions.get_links("https://devpost.com/software/dr-helper"))
 
-con = mysql_functions.get_connection()
-curs = con.cursor()
+# con = mysql_functions.get_connection()
+# curs = con.cursor()
 
+import time
+#
+start = time.time()
+#
 url = "https://devpost.com/software/test2-vpbr5s"
+#
+print(core_functions.check_file(url))
+print(time.time() - start)
 
-core_functions.check_file(url)
-
+# core_functions.store_projects_batch(max_links=50)
+# core_functions.store_files()
+# print(webscraping_functions.get_links("https://devpost.com/software/hocus-focus-64xe8c"))
 
 # desc_hash = misc_functions.get_description_hash(url)
 # mysql_functions.store_project(curs, url, desc_hash)
@@ -61,5 +69,5 @@ core_functions.check_file(url)
 # core_functions.store_files()
 
 # con.commit()
-con.close()
-curs.close()
+# con.close()
+# curs.close()
