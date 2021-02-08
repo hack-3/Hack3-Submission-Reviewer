@@ -8,7 +8,7 @@ def set_url_type(url: str) -> str:
     """
     This is a method to set the url type. If the url doesn't contains a start (http:// or https://), then a https:// is added
     :param url: Url that might or might not have a type(http/https_
-    :return: Url with a type added
+    :return: URL with https added
     """
 
     if "https://" not in url and "http://" not in url:

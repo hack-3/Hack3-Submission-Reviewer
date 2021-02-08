@@ -1,3 +1,5 @@
+# BAD FLASK CODE! - too lazy to fix lol
+
 from flask import Flask, request, render_template, redirect, url_for
 from core import core_functions
 
@@ -71,9 +73,6 @@ def check():
             }
             </style>"""
 
-            # project_template = '<p><b>Devpost Link</b>: <a href="{0}" target="_blank" rel="noreferrer noopener">{0}</a></p>'
-            # file_template = '<p><b>File Name</b>: {2}     <b>Devpost Link</b>: <a href="{1}" target="_blank" rel="noreferrer noopener">{1}</a>     <b>Github Link</b>: <a href="{0}" target="_blank" rel="noreferrer noopener">{0}</a></p>'
-
             data = core_functions.check_file(query['devpost'])
 
             p = data[0]
@@ -84,7 +83,6 @@ def check():
 
             doc = f"<html>{style}<body>{t1}{q}<br>{table.format(project_head, ''.join(projects), t2)}<br>{table.format(file_head, ''.join(files), t3)}</body>"
 
-            # return "<html>" + style + "<body>" + t1 + q + t2 + table.format(project_head, ''.join(projects)) + t3 + table.format(file_head,''.join(files)) + "</body>" "</html>"
             return doc
 
     elif request.method == "POST":

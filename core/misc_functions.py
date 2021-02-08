@@ -6,9 +6,9 @@ from core import config, mysql_functions, webscraping_functions
 
 def get_string_hash(string: str) -> str:
     """
-    Returns the hash of a string
-    :param string: String you want hashed
-    :return: Hashed String
+    Returns the hash of the string
+    :param string: String to be hashed
+    :return: Hash
     """
     h1 = tlsh.hash(string.encode("utf-8"))
     return h1 if h1 != "TNULL" else f"N{string}"
@@ -16,8 +16,8 @@ def get_string_hash(string: str) -> str:
 
 def get_description_hash(url: str) -> str:
     """
-    Internal function to get the hash of the description of a particular file
-    :param url: Project url
+    Returns the hash of the description of a particular file
+    :param url: Devpost Project URL
     :return: None
     """
     description = webscraping_functions.get_description(url)
@@ -26,9 +26,9 @@ def get_description_hash(url: str) -> str:
 
 def parse_file_name(file: str) -> List[str]:
     """
-    Gets the file info, extension + name
-    :param file: File
-    :return: List[file name, file extension]
+    Parses a file to get name and extension
+    :param file: Full filename
+    :return: file information [file name, file extension]
     """
     file = file.split(".")
     if len(file) == 1:
@@ -43,7 +43,7 @@ def parse_file_name(file: str) -> List[str]:
 def parse_github_raw(url: str) -> List[str]:
     """
     Parses a raw.githubusercontent.com url to get the user and repo
-    :param url:
+    :param url: Raw Github URL
     :return: List[user, repo, file name, file extension]
     """
     args = url[url.index("github"):].split('/')
@@ -58,9 +58,9 @@ def parse_github_raw(url: str) -> List[str]:
 
 def get_only_github(url: str) -> List[str]:
     """
-    Gets only the github url from a devpost.com/software url
-    :param url:
-    :return:
+    Returns all of the github links within a Devpost project
+    :param url: Devpost Project URL
+    :return: List[url]
     """
 
     urls = webscraping_functions.get_links(url)
@@ -71,8 +71,8 @@ def get_only_github(url: str) -> List[str]:
 def get_devpost_github(url: str) -> Iterable[str]:
     """
     Generator that returns all the files in a devpost project.
-    :param url:
-    :return:
+    :param url: Devpost Project URL
+    :return: List[url]
     """
 
     for u in get_only_github(url):
@@ -84,10 +84,11 @@ def get_devpost_github(url: str) -> Iterable[str]:
 
 def store_github_repo(curs, github_url: str, devpost_url: str = "") -> None:
     """
-    Stores the files from a github repo
-    :param github_url:
-    :param devpost_url:
-    :return:
+    Stores all of teh files from a github repo
+    :param curs: The cursor so we can open/close things outside of function
+    :param github_url: Github project URL
+    :param devpost_url: Devpost Project URL
+    :return: None
     """
 
     if "github" not in github_url:
@@ -121,9 +122,9 @@ def store_github_repo(curs, github_url: str, devpost_url: str = "") -> None:
 def check_diff(hash1: str, hash2: str) -> bool:
     """
     Checks the difference between 2 hashes
-    :param hash1: One hash
-    :param hash2: Another Hash
-    :return: If hashes are similar
+    :param hash1: First Hash
+    :param hash2: Second Hash
+    :return: Boolean if hashes are similar enough
     """
     if hash1[0] == hash2[0] == "T":
         diff = tlsh.diff(hash1, hash2)
