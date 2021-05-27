@@ -2,6 +2,8 @@ import json
 import os
 
 # Creating the file if it doesn't exist
+# TODO - make it so user can input file
+# Might hardcode mysql db and store information there
 with open("storage.json", "a") as f:
     if os.stat("storage.json").st_size == 0:
         f.write("{}")

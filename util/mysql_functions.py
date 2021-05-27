@@ -2,7 +2,8 @@ from typing import List, Tuple
 import mysql.connector
 from mysql.connector import cursor, errors
 from datetime import datetime
-from core import config
+from util import config
+import util.mysql_datatypes as DataType
 
 
 def get_connection() -> mysql.connector:
@@ -18,6 +19,36 @@ def get_connection() -> mysql.connector:
     )
 
 
+def insert_values(curs: cursor.MySQLCursor, table: str, **kwargs) -> None:
+    """
+    Basic function to store some data into a database
+    :param curs: The mysql cursor
+    :param table: Table to store data in
+    :param kwargs: List of arguments and their values
+    """
+    params = ", ".join(map(lambda x: f"'{x}'", kwargs.keys()))
+    values = ", ".join(map(lambda x: f"'{x}'", kwargs.keys()))
+
+    try:
+        curs.execute(
+            f"INSERT IGNORE INTO {table} ({params}) VALUES ({values});")
+    except Exception as e:
+        print(e)
+
+
+def create_table(curs: cursor.MySQLCursor, table_name: str, override=False, **kwargs: DataType):
+    """
+    Creates a mysql table
+    """
+    categories = ", ".join(map(lambda x: f"{x} {str(kwargs[x])}", kwargs))
+
+    try:
+        curs.execute(
+            f"CREATE TABLE f{table_name} {'' if override else 'IF NOT EXISTS '}({categories})")
+    except Exception as e:
+        print(e)
+
+
 def store_project(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
     """
     Stores a url with its hash in to `projects` table.
@@ -26,11 +57,22 @@ def store_project(curs: cursor.MySQLCursor, url: str, desc_hash: str) -> None:
     :param desc_hash: Hash of the description
     :return: None
     """
+    insert_values(curs, "projects", url=url, timeAdded=datetime.today(), descHash=desc_hash)
+
+def get_values(curs: cursor.MySQLCursor, table: str, *categories: str, restrictions: list=None):
+    if not restrictions:
+        restrictions = []
+
+    temp1 = ", ".join(categories)
+    temp2 = "WHERE" if restrictions else "" + " AND ".join(restrictions)
+
     try:
         curs.execute(
-            f"INSERT IGNORE INTO projects (url, timeAdded, descHash) VALUES ('{url}', '{datetime.today()}', '{desc_hash}');")
-    except Exception as e:
+            f"SELECT {temp1} FROM {table} {temp2}")
+        return curs.fetchall()
+    except errors.ProgrammingError as e:
         print(e)
+        return []
 
 
 def store_file(curs: cursor.MySQLCursor, github_url: str, devpost_url: str, file_hash: str, file_name: str,
@@ -45,25 +87,16 @@ def store_file(curs: cursor.MySQLCursor, github_url: str, devpost_url: str, file
     :param extension: Extension of the file
     :return: None
     """
-    try:
-        curs.execute(
-            f"INSERT IGNORE INTO files (githubUrl, devpostUrl, timeAdded, fileHash, fileName, extension) VALUES ('{github_url}', '{devpost_url}', '{datetime.today()}', '{file_hash}', '{file_name}', '{extension}');")
-    except Exception as e:
-        print(e)
+    insert_values(curs, "files", githubUrl=github_url, timeAdded=datetime.today(), devpostUrl=devpost_url,
+                  fileHash=file_hash, fileName=file_name, extension=extension)
 
 
 def store_file_ext(curs: cursor.MySQLCursor, github_url: str, devpost_url: str, file_hash: str, file_name: str,
                    extension: str) -> None:
-    try:
-        curs.execute(
-            f"INSERT IGNORE INTO {extension} (githubUrl, devpostUrl, timeAdded, fileHash, fileName) VALUES ('{github_url}', '{devpost_url}', '{datetime.today()}', '{file_hash}', '{file_name}')")
-    except errors.ProgrammingError:
-        curs.execute(
-            f"CREATE TABLE {extension} (githubUrl VARCHAR(120) NOT NULL, devpostUrl VARCHAR(120), timeAdded DATETIME, fileHash VARCHAR(100) NOT NULL, fileName VARCHAR(30))")
-        curs.execute(
-            f"INSERT IGNORE INTO {extension} (githubUrl, devpostUrl, timeAdded, fileHash, fileName) VALUES ('{github_url}', '{devpost_url}', '{datetime.today()}', '{file_hash}', '{file_name}')")
-    except Exception as e:
-        print(e)
+    create_table(curs, extension, githubUrl=DataType.VarChar(120, True), devpostUrl=DataType.VarChar(120, True),
+                 timeAdded=DataType.DateTime, fileHash=DataType.VarChar(100, True), fileName=DataType.VarChar(30))
+    insert_values(curs, extension, githubUr=github_url, devpostUrl=devpost_url, timeAdded=datetime.today(),
+                  fileHash=file_hash, fileName=file_name)
 
 
 def get_unadded_urls(curs: cursor.MySQLCursor) -> List[str]:

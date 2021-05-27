@@ -1,7 +1,7 @@
 import threading
 import time
 from typing import List, Tuple
-from core import mysql_functions, webscraping_functions, misc_functions
+from util import mysql_functions, webscraping_functions, misc_functions
 
 
 def monitor_site() -> None:

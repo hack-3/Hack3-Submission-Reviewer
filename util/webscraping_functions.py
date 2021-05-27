@@ -1,7 +1,7 @@
 from typing import Set
 from bs4 import BeautifulSoup
 import requests
-from core import config
+from util import config
 
 
 def set_url_type(url: str) -> str:

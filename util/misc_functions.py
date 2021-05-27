@@ -1,7 +1,7 @@
 from typing import List, Iterable
 from fuzzywuzzy import fuzz
 import tlsh
-from core import config, mysql_functions, webscraping_functions
+from util import config, mysql_functions, webscraping_functions
 
 
 def get_string_hash(string: str) -> str:
