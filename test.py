@@ -1,4 +1,4 @@
-from core import mysql_functions, webscraping_functions, misc_functions, core_functions
+from util import mysql_functions, webscraping_functions, misc_functions, core_functions
 
 # # mysql_functions.store_urls_batch(ending_page=9999, max_links=200)
 #

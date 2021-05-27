@@ -1,7 +1,7 @@
 # BAD FLASK CODE! - too lazy to fix lol
 
 from flask import Flask, request, render_template, redirect, url_for
-from core import core_functions
+from util import core_functions
 
 app = Flask(__name__)
 

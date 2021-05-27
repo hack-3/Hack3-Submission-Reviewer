@@ -1,6 +1,6 @@
 import mysql
 from mysql.connector import errors
-from core import config
+from util import config
 
 # Gets mysql tables and stuff sort out
 user = input("username: ")
