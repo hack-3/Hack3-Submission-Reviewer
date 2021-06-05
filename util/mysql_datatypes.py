@@ -1,3 +1,5 @@
+# Some datatypes to be used internally
+
 class DataType:
     def __init__(self, not_null=False):
         self.not_null = not_null
