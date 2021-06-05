@@ -20,8 +20,9 @@ def connect_database() -> mysql.connector:
     )
 
 
-def command(command: str, curs: Optional[cursor.MySQLCursor] = None):
+def command(command: str, commit=False, curs: Optional[cursor.MySQLCursor] = None):
     to_close = False
+    to_return = None
     connection = None
 
     if not curs:
@@ -30,13 +31,16 @@ def command(command: str, curs: Optional[cursor.MySQLCursor] = None):
         to_close = True
 
     try:
-        to_return = curs.execute(command)
+        curs.execute(command)
+
+        if not commit:
+            to_return = curs.fetchall()
     except Exception as e:
         print(e)
-        to_return = None
 
     if to_close:
-        connection.commit()
+        if commit:
+            connection.commit()
 
         curs.close()
         connection.close()
@@ -45,18 +49,16 @@ def command(command: str, curs: Optional[cursor.MySQLCursor] = None):
 
 
 def insert_values(table: str, curs: Optional[cursor.MySQLCursor] = None, **kwargs):
-    params = ", ".join(map(lambda x: f"'{x}'", kwargs.keys()))
-    values = ", ".join(map(lambda x: f"'{x}'", kwargs.keys()))
+    params = ", ".join(map(lambda x: f"{x}", kwargs.keys()))
+    values = ", ".join(map(lambda x: f"'{x}'", kwargs.values()))
 
-    command(f"INSERT IGNORE INTO {table} ({params}) VALUES ({values});", curs=curs)
+    command(f"INSERT IGNORE INTO {table} ({params}) VALUES ({values});", commit=True, curs=curs)
 
 
 def create_table(table_name: str, curs: Optional[cursor.MySQLCursor] = None, override=False, **kwargs: DataType):
     categories = ", ".join(map(lambda x: f"{x} {str(kwargs[x])}", kwargs))
 
-    # print(f"CREATE TABLE{'' if override else 'IF NOT EXISTS '} {table_name} ({categories})")
-
-    command(f"CREATE TABLE {'' if override else 'IF NOT EXISTS '}{table_name} ({categories})", curs=curs)
+    command(f"CREATE TABLE {'' if override else 'IF NOT EXISTS '}{table_name} ({categories})", commit=True, curs=curs)
 
 
 def get_values(table: str, *categories: str, restrictions: list = None, curs: Optional[cursor.MySQLCursor] = None):
