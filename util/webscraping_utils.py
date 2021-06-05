@@ -1,5 +1,6 @@
 import re
 from typing import List
+import base64
 import bs4
 import requests
 from util import configuration as c
@@ -121,3 +122,13 @@ def get_github_files(user: str, repo: str) -> List[str]:
 
     link = f"https://api.github.com/repos/{user}/{repo}/git/trees/{branch}?recursive=3"  # Can change how far you want to look through
     return explore_github_tree(link)
+
+
+def get_file_content(file_link: str) -> str:
+    resp = requests.get(file_link)
+    if resp.status_code != 200:
+        print(f"{file_link} returned with status code {resp.status_code}")
+        return ""
+
+    content = resp.json()["content"]
+    return base64.decodebytes(content.encode("utf-8")).decode("utf-8")
