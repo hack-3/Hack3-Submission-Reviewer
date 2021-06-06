@@ -92,3 +92,19 @@ def store_file(devpost_url: str, file_hash: str, file_name: str, file_extension:
                  fileName=DataType.VarChar(30), timeAdded=DataType.DateTime())
     insert_values(file_extension, devpostUrl=devpost_url, fileHash=file_hash, fileName=file_name,
                   timeAdded=datetime.today())
+
+
+def mark_project_checked(devpost_url: str):
+    update_table("projects", restrictions=[f"devpostUrl='{devpost_url}'"], added=DataType.Bool(True))
+
+
+def get_unadded_projects() -> List[Tuple[str, str]]:
+    return get_values("projects", "devpostUrl", "githubSources", restrictions=["added = FALSE"])
+
+
+def get_desc_hashes() -> List[Tuple[str, str]]:
+    return get_values("projects", "devpostUrl", "descHash")
+
+
+def get_file_hashes(file_ext: str) -> List[Tuple[str, str, str]]:
+    return get_values(file_ext, "devpostUrl", "fileName", "fileHash")
