@@ -1,7 +1,7 @@
+from datetime import datetime
 from typing import List, Tuple, Optional
 import mysql.connector
 from mysql.connector import cursor, errors
-from datetime import datetime
 from util import configuration as c
 import util.mysql_datatypes as DataType
 
@@ -61,11 +61,34 @@ def create_table(table_name: str, curs: Optional[cursor.MySQLCursor] = None, ove
     command(f"CREATE TABLE {'' if override else 'IF NOT EXISTS '}{table_name} ({categories})", commit=True, curs=curs)
 
 
-def get_values(table: str, *categories: str, restrictions: list = None, curs: Optional[cursor.MySQLCursor] = None):
+def update_table(table_name: str, curs: Optional[cursor.MySQLCursor] = None, restrictions: Optional[List] = None,
+                 **modified_columns):
+    if not restrictions:
+        restrictions = []
+    temp1 = ", ".join(f"{i}={str(modified_columns[i])}" for i in modified_columns)
+    temp2 = ("WHERE " if restrictions else "") + " AND ".join(restrictions)
+
+    command(f"UPDATE {table_name} SET {temp1} {temp2}", commit=True, curs=curs)
+
+
+def get_values(table: str, *categories: str, restrictions: Optional[List] = None,
+               curs: Optional[cursor.MySQLCursor] = None):
     if not restrictions:
         restrictions = []
 
     temp1 = ", ".join(categories)
-    temp2 = "WHERE" if restrictions else "" + " AND ".join(restrictions)
+    temp2 = ("WHERE " if restrictions else "") + " AND ".join(restrictions)
 
     return command(f"SELECT {temp1} FROM {table} {temp2}", curs=curs)
+
+
+def store_devpost_project(devpost_url: str, github_sources: str, desc_hash: str):
+    insert_values("projects", devpostUrl=devpost_url, githubSources=github_sources, timeAdded=datetime.today(),
+                  descHash=desc_hash)
+
+
+def store_file(devpost_url: str, file_hash: str, file_name: str, file_extension: str):
+    create_table(file_extension, devpostUrl=DataType.VarChar(120), fileHash=DataType.VarChar(100),
+                 fileName=DataType.VarChar(30), timeAdded=DataType.DateTime())
+    insert_values(file_extension, devpostUrl=devpost_url, fileHash=file_hash, fileName=file_name,
+                  timeAdded=datetime.today())
