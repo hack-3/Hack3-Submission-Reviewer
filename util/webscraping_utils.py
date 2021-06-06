@@ -130,7 +130,7 @@ def explore_github_tree_raw(tree_url: str) -> List[Tuple[str, str]]:
             trees.append(path)
         elif type_ == "blob":
             size = leaf["size"]  # Size is in bytes
-            if size < 3000000:  # 3 MB
+            if size < 2000000:  # 2 MB
                 files.append(
                     (path, f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{path.replace(' ', '%20')}"))
             # else:
