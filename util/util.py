@@ -1,8 +1,9 @@
 import re
+import time
 from typing import List, Tuple
 from fuzzywuzzy import fuzz
 import tlsh
-from util import mysql_datatypes as DataType, mysql_util, webscraping_utils
+from util import mysql_util, webscraping_utils
 
 
 def get_hash(string: str) -> str:
@@ -121,3 +122,14 @@ def check_project(devpost_url: str):
             for h2 in hashes:
                 if compare_hashes(h[1], h2[2]):
                     print(f"File {h[0]} is similar to {h2[1]} from project {h2[0]}")
+
+
+def monitor_site() -> None:
+    """
+    Sends a request every 30 seconds to the devpost site to monitor it for new projects.
+    :return: None
+    """
+    while True:
+        print("Request sent")
+        store_projects_batch(ending_page=1)
+        time.sleep(30)
