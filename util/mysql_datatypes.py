@@ -25,9 +25,9 @@ class DateTime(DataType):
 
 
 class Bool(DataType):
-    def __init__(self, val: bool, not_null=False):
+    def __init__(self, val, not_null=False):
         super().__init__(not_null)
         self.val = val
 
     def __str__(self):
-        return "TRUE" if self.val else "FALSE"
+        return "BOOL" if self.val is None else "TRUE" if self.val else "FALSE"
