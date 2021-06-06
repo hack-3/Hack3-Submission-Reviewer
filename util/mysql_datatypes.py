@@ -23,6 +23,7 @@ class DateTime(DataType):
     def __str__(self):
         return f"DATETIME {'NOT NULL' if self.not_null else ''}"
 
+
 class Bool(DataType):
     def __init__(self, val: bool, not_null=False):
         super().__init__(not_null)
