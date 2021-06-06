@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Tuple
 import base64
 import bs4
 import requests
@@ -74,7 +74,7 @@ def get_project_description(project_url: str, html: str = "") -> str:
     return re.sub("\n+", "\n", re.sub('<[^<]+?>', '', description)).strip()
 
 
-def explore_github_tree(tree_url: str) -> List[str]:
+def explore_github_tree(tree_url: str) -> List[Tuple[str, str]]:
     files = []
     trees = []
 
@@ -94,7 +94,9 @@ def explore_github_tree(tree_url: str) -> List[str]:
         elif type_ == "blob":
             size = leaf["size"]  # Size is in bytes
             if size < 3000000:  # 3 MB
-                files.append(url)
+                # TODO - Make so this returns a raw.github, not api.github
+
+                files.append((path, url))
             else:
                 print(url)
         else:
@@ -107,7 +109,7 @@ def explore_github_tree(tree_url: str) -> List[str]:
     return files
 
 
-def get_github_files(user: str, repo: str) -> List[str]:
+def get_github_files(user: str, repo: str) -> List[Tuple[str, str]]:
     branches_url = f"https://api.github.com/repos/{user}/{repo}/branches"
     resp = requests.get(branches_url, headers={"Authorization": f"token {c.get_github_token()}"})
 
@@ -131,4 +133,4 @@ def get_file_content(file_link: str) -> str:
         return ""
 
     content = resp.json()["content"]
-    return base64.decodebytes(content.encode("utf-8")).decode("utf-8")
+    return base64.decodebytes(content.encode("utf-8", errors="replace")).decode("utf-8", errors="replace")
