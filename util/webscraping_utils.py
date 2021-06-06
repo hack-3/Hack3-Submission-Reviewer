@@ -74,7 +74,7 @@ def get_project_description(project_url: str, html: str = "") -> str:
     return re.sub("\n+", "\n", re.sub('<[^<]+?>', '', description)).strip()
 
 
-def explore_github_tree(tree_url: str) -> List[Tuple[str, str]]:
+def explore_github_tree_api(tree_url: str) -> List[Tuple[str, str]]:
     files = []
     trees = []
 
@@ -98,13 +98,49 @@ def explore_github_tree(tree_url: str) -> List[Tuple[str, str]]:
 
                 files.append((path, url))
             else:
-                print(url)
+                print(f"{url} is too large")
         else:
             print(type_)
 
     if len(files) == 0:
         for i in trees:
-            files.extend(explore_github_tree(i))
+            files.extend(explore_github_tree_api(i))
+
+    return files
+
+
+def explore_github_tree_raw(tree_url: str) -> List[Tuple[str, str]]:
+    files = []
+    trees = []
+
+    resp = requests.get(tree_url, headers={"Authorization": f"token {c.get_github_token()}"})
+
+    user, repo, branch = re.findall("^https://api.github.com/repos/([\w-]+)/([\w-]+)/git/trees/([\w+]+)", tree_url)[0]
+
+    if resp.status_code != 200:
+        return []
+
+    data = resp.json()
+    for leaf in data["tree"]:
+        type_ = leaf["type"]
+        path = leaf["path"]
+        url = leaf["url"]
+
+        if type_ == "tree":
+            trees.append(path)
+        elif type_ == "blob":
+            size = leaf["size"]  # Size is in bytes
+            if size < 3000000:  # 3 MB
+                files.append(
+                    (path, f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{path.replace(' ', '%20')}"))
+            else:
+                print(f"{url} is too large")
+        else:
+            print(type_)
+
+    if len(files) == 0:
+        for i in trees:
+            files.extend(explore_github_tree_raw(i))
 
     return files
 
@@ -123,10 +159,10 @@ def get_github_files(user: str, repo: str) -> List[Tuple[str, str]]:
             branch = branches[0]
 
     link = f"https://api.github.com/repos/{user}/{repo}/git/trees/{branch}?recursive=3"  # Can change how far you want to look through
-    return explore_github_tree(link)
+    return explore_github_tree_raw(link)
 
 
-def get_file_content(file_link: str) -> str:
+def get_file_content_api(file_link: str) -> str:
     resp = requests.get(file_link)
     if resp.status_code != 200:
         print(f"{file_link} returned with status code {resp.status_code}")
@@ -134,3 +170,12 @@ def get_file_content(file_link: str) -> str:
 
     content = resp.json()["content"]
     return base64.decodebytes(content.encode("utf-8", errors="replace")).decode("utf-8", errors="replace")
+
+
+def get_file_content_raw(file_link: str) -> str:
+    resp = requests.get(file_link)
+    if resp.status_code != 200:
+        print(f"{file_link} returned with status code {resp.status_code}")
+        return ""
+
+    return resp.text
