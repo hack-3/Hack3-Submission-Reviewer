@@ -97,8 +97,8 @@ def explore_github_tree_api(tree_url: str) -> List[Tuple[str, str]]:
                 # TODO - Make so this returns a raw.github, not api.github
 
                 files.append((path, url))
-            else:
-                print(f"{url} is too large")
+            # else:
+            #     print(f"{url} is too large")
         else:
             print(type_)
 
@@ -133,8 +133,8 @@ def explore_github_tree_raw(tree_url: str) -> List[Tuple[str, str]]:
             if size < 3000000:  # 3 MB
                 files.append(
                     (path, f"https://raw.githubusercontent.com/{user}/{repo}/{branch}/{path.replace(' ', '%20')}"))
-            else:
-                print(f"{url} is too large")
+            # else:
+            #     print(f"{url} is too large")
         else:
             print(type_)
 

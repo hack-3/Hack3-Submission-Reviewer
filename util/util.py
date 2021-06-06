@@ -113,6 +113,8 @@ def check_project(devpost_url: str):
             file_hashes.append((file[0], get_hash(webscraping_utils.get_file_content_raw(file[1]))))
 
     for h in file_hashes:
+        print(f"Checking file {h[0]}")
+
         hashes = mysql_util.get_file_hashes(parse_file_name(h[0])[1])
 
         if hashes:
