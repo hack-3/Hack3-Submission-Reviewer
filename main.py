@@ -7,4 +7,4 @@ if a == "add projects":
 elif a == "add files":
     util.store_project_sources()
 elif a == "check project":
-    util.s
+    util.check_project(input("Devpost url: "))
