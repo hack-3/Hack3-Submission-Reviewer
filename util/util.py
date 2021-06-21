@@ -95,22 +95,29 @@ def store_project_sources():
 
 
 def check_project(devpost_url: str):
-    if re.search("-[a-z][a-z][a-z][a-z][a-z][a-z]$", devpost_url):
+    if re.search("-[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]$", devpost_url):
         print("Project might be duplicate")
 
     html = webscraping_utils.get_html(devpost_url)
     desc_hash = get_hash(webscraping_utils.get_project_description("", html=html))
 
+    similar = {}
+
+    print("Checking description")
     for entry in mysql_util.get_desc_hashes():
         if compare_hashes(desc_hash, entry[1]):
             print(f"Project is similar to {entry[0]}")
 
+            similar.setdefault(entry[0], 0)
+            similar[entry[0]] += 1
     sources = webscraping_utils.get_project_sources("", html=html)
     file_hashes = []
     for source in sources:
         user, repo = get_user_repo(source)
 
         for file in webscraping_utils.get_github_files(user, repo):
+            print(f"Hasing f{file[0]}")
+
             file_hashes.append((file[0], get_hash(webscraping_utils.get_file_content_raw(file[1]))))
 
     for h in file_hashes:
@@ -122,6 +129,11 @@ def check_project(devpost_url: str):
             for h2 in hashes:
                 if compare_hashes(h[1], h2[2]):
                     print(f"File {h[0]} is similar to {h2[1]} from project {h2[0]}")
+
+                    similar.setdefault(h2[0], 0)
+                    similar[h2[0]] += 1
+
+    return similar
 
 
 def monitor_site() -> None:
