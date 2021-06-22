@@ -4,6 +4,8 @@ from util import util
 def get_default_message():
     return "python main.py [store_project|store_sources|check_project]"
 
+sy.argv.pop(0)
+
 if len(sys.argv) == 0:
     print(get_default_message())
 else:
