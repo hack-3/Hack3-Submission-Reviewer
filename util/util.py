@@ -95,7 +95,8 @@ def store_project_sources():
 
 
 def check_project(devpost_url: str):
-    if re.search("-[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]$", devpost_url):
+    duplicate = bool(re.search("-[a-z0-9]{6}$", devpost_url))
+    if duplicate:
         print("Project might be duplicate")
 
     html = webscraping_utils.get_html(devpost_url)
@@ -116,7 +117,7 @@ def check_project(devpost_url: str):
         user, repo = get_user_repo(source)
 
         for file in webscraping_utils.get_github_files(user, repo):
-            print(f"Hasing f{file[0]}")
+            print(f" - Hashing f{file[0]}")
 
             file_hashes.append((file[0], get_hash(webscraping_utils.get_file_content_raw(file[1]))))
 
@@ -133,7 +134,22 @@ def check_project(devpost_url: str):
                     similar.setdefault(h2[0], 0)
                     similar[h2[0]] += 1
 
-    return similar
+    output_log(devpost_url, duplicate, similar, len(sources) + 1)
+
+
+def output_log(devpost_url, possible_duplicate, similar, num_files):
+    with open("output.txt", "w+") as f:
+        f.write(f"Writing check for project {devpost_url}\n\n")
+
+        if possible_duplicate:
+            f.write("Project might be a duplicate - Search for projects with similar name\n\n")
+
+        if not similar:
+            f.write("Project is not similar to any in the dabase")
+        else:
+            for project in similar:
+                f.write(
+                    f"{project} has {similar[project]} files which are similar ({int(similar[project] / num_files)}%)")
 
 
 def monitor_site() -> None:
