@@ -1,3 +1,4 @@
+from concurrent.futures import ThreadPoolExecutor
 import re
 import time
 from typing import List, Tuple
@@ -56,11 +57,13 @@ def store_projects_batch(starting_page: int = 1, ending_page: int = 10):
     if starting_page <= 0:
         starting_page = 1
 
+    executor = ThreadPoolExecutor(8)
+
     while starting_page <= ending_page:
         projects = webscraping_utils.get_new_projects(starting_page)
 
         for project in projects:
-            store_project(project)
+            executor.submit(store_project, (project))
 
         starting_page += 1
 
@@ -76,21 +79,30 @@ def store_source(devpost_url, github_links):
         if link == "":
             continue
 
-        user, repo = get_user_repo(link)
-        file_links = webscraping_utils.get_github_files(user, repo)
-
-        for file in file_links:
-            print(f" - Storing file {file[0]}")
-
-            file_hash = get_hash(webscraping_utils.get_file_content_raw(file[1]))
-
-            if file_hash == "":
-                return
-
-            name, ext = parse_file_name(file[0])
-            mysql_util.store_file(devpost_url, file_hash, name, ext)
+        for h in get_file_hashes(link):
+            mysql_util.store_file(devpost_url, *h)
 
     mysql_util.mark_project_checked(devpost_url)
+
+
+def get_file_hashes(github_link):
+    hashes = []
+
+    user, repo = get_user_repo(github_link)
+    file_links = webscraping_utils.get_github_files(user, repo)
+
+    for file in file_links:
+        print(f" - Hashing file {file[0]}")
+
+        file_hash = get_hash(webscraping_utils.get_file_content_raw(file[1]))
+
+        if file_hash == "":
+            continue
+
+        name, ext = parse_file_name(file[0])
+        hashes.append((file_hash, name, ext))
+
+    return hashes
 
 
 def store_project_sources():
@@ -117,24 +129,20 @@ def check_project(devpost_url: str):
 
             similar.setdefault(entry[0], 0)
             similar[entry[0]] += 1
+
     sources = webscraping_utils.get_project_sources("", html=html)
     file_hashes = []
-    for source in sources:
-        user, repo = get_user_repo(source)
-
-        for file in webscraping_utils.get_github_files(user, repo):
-            print(f" - Hashing f{file[0]}")
-
-            file_hashes.append((file[0], get_hash(webscraping_utils.get_file_content_raw(file[1]))))
+    for link in sources:
+        file_hashes.extend(get_file_hashes(link))
 
     for h in file_hashes:
-        print(f"Checking file {h[0]}")
+        print(f"Checking file {h[1]}")
 
-        hashes = mysql_util.get_file_hashes(parse_file_name(h[0])[1])
+        hashes = mysql_util.get_file_hashes(h[2])
 
         if hashes:
             for h2 in hashes:
-                if compare_hashes(h[1], h2[2]):
+                if compare_hashes(h[0], h2[2]):
                     print(f"File {h[0]} is similar to {h2[1]} from project {h2[0]}")
 
                     similar.setdefault(h2[0], 0)
@@ -142,6 +150,22 @@ def check_project(devpost_url: str):
 
     output_log(devpost_url, duplicate, similar, len(file_hashes) + 1)
 
+
+def check_hash(file_name, hash_, file_ext):
+    print(f"Checking file {file_name}")
+    similar = {}
+
+    hashes = mysql_util.get_file_hashes(file_ext)
+
+    if hashes:
+        for h2 in hashes:
+            if compare_hashes(hash_, h2[2]):
+                print(f"File {file_name} is similar to {h2[1]} from project {h2[0]}")
+
+                similar.setdefault(h2[0], 0)
+                similar[h2[0]] += 1
+
+    return similar
 
 def output_log(devpost_url, possible_duplicate, similar, num_files):
     with open("output.txt", "w+") as f:
@@ -151,7 +175,7 @@ def output_log(devpost_url, possible_duplicate, similar, num_files):
             f.write("Project might be a duplicate - Search for projects with similar name\n\n")
 
         if not similar:
-            f.write("Project is not similar to any in the dabase")
+            f.write("Project is not similar to any in the database")
         else:
             for project in similar:
                 f.write(
