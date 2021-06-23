@@ -1,22 +1,20 @@
 import sys
 from util import util
 
-def get_default_message():
-    return "python main.py [store_project|store_sources|check_project]"
 
 if len(sys.argv) == 0:
-    print(get_default_message())
+    print("python main.py [store_projects|check_project]")
 else:
-    if sys.argv[0] not in ("store_project", "store_sources", "check_project"):
-        print(get_default_message())
+    if sys.argv[0] not in ("store_projects", "check_project"):
+        print("python main.py [store_projects|store_sources|check_project]")
     else:
-        if sys.argv[0] == "store_project":
+        if sys.argv[0] == "store_projects":
             starting_page = 1
             ending_page = 1
 
             if len(sys.argv) > 1:
                 if sys.argv[1] == "-h":
-                    print("python main.py store_project (starting_page) (ending_page)")
+                    print("python main.py store_projects (starting_page) (ending_page)")
                 else:
                     starting_page = int(sys.argv[1])
                     ending_page = int(sys.argv[2]) if len(sys.argv) >= 3 else starting_page + 1

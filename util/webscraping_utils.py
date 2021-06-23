@@ -126,7 +126,7 @@ def explore_github_tree_raw(tree_url: str) -> List[Tuple[str, str]]:
         path = leaf["path"]
         url = leaf["url"]
 
-        if re.search(r"(^|/)(env|node_modules|lib)/", path):
+        if re.search(r"(^|/)(env|node_modules|lib|static)/", path):
             continue
 
         if type_ == "tree":
