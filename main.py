@@ -2,6 +2,8 @@ import sys
 from util import util
 
 
+sys.argv.pop(0)
+
 if len(sys.argv) == 0:
     print("python main.py [store_projects|check_project]")
 else:
