@@ -61,7 +61,10 @@ def get_project_sources(project_url: str, html: str = "") -> List[str]:
     if not html:
         html = get_html(project_url)
 
-    return re.findall("href=\"(https://github.com/[\w-]+/[\w-]+)\"", html)
+    parser = bs4.BeautifulSoup(html, features="html.parser")
+    links = str(parser.find("nav", {"class": "app-links"}))
+
+    return re.findall("href=\"(https://github\.com/[^/]+/[^\"]+)\"", links)
 
 
 def get_project_description(project_url: str, html: str = "") -> str:
@@ -124,7 +127,6 @@ def explore_github_tree_raw(tree_url: str) -> List[Tuple[str, str]]:
     for leaf in data["tree"]:
         type_ = leaf["type"]
         path = leaf["path"]
-        url = leaf["url"]
 
         if re.search(r"(^|/)(env|node_modules|lib|static|docs)/", path):
             continue
@@ -158,6 +160,8 @@ def get_github_files(user: str, repo: str) -> List[Tuple[str, str]]:
 
         if "master" in branches:
             branch = "master"
+        elif "main" in branches:
+            branch = "main"
         else:
             branch = branches[0]
 

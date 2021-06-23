@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import List, Tuple, Optional
+import re
 import mysql.connector
-from mysql.connector import cursor, errors
+from mysql.connector import cursor
 from util import configuration as c
 import util.mysql_datatypes as DataType
 
@@ -88,9 +89,11 @@ def store_devpost_project(devpost_url: str, github_sources: str, desc_hash: str)
 
 
 def store_file(devpost_url: str, file_hash: str, file_name: str, file_extension: str):
-    create_table(file_extension, devpostUrl=DataType.VarChar(120), fileHash=DataType.VarChar(100),
+    table_name = "_" + re.sub("[^\w]", "_", file_extension)
+
+    create_table(table_name, devpostUrl=DataType.VarChar(120), fileHash=DataType.VarChar(100),
                  fileName=DataType.VarChar(30), timeAdded=DataType.DateTime())
-    insert_values(file_extension, devpostUrl=devpost_url, fileHash=file_hash, fileName=file_name,
+    insert_values(table_name, devpostUrl=devpost_url, fileHash=file_hash, fileName=file_name,
                   timeAdded=datetime.today())
 
 
@@ -111,4 +114,8 @@ def get_desc_hashes() -> List[Tuple[str, str]]:
 
 
 def get_file_hashes(file_ext: str) -> List[Tuple[str, str, str]]:
-    return get_values(file_ext, "devpostUrl", "fileName", "fileHash")
+    # file_ext is RAW
+
+    table_name = "_" + re.sub("[^\w]", "_", file_ext)
+
+    return get_values(table_name, "devpostUrl", "fileName", "fileHash")
