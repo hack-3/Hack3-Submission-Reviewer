@@ -39,16 +39,17 @@ def compare_hashes(hash1: str, hash2: str) -> bool:
         return diff < 100  # TODO - find good values here
     else:
         ratio = fuzz.ratio(hash1, hash2)
-        return ratio > 70  # TODO - find good ratio here
+        return ratio > 80  # TODO - find good ratio here
 
 
 def store_project(devpost_url: str):
     html = webscraping_utils.get_html(devpost_url)
 
     desc_hash = get_hash(webscraping_utils.get_project_description("", html=html))
-    github_links = ",".join(webscraping_utils.get_project_sources("", html=html))
+    github_links = webscraping_utils.get_project_sources("", html=html)
+    mysql_util.store_devpost_project(devpost_url, ",".join(github_links), desc_hash)
 
-    mysql_util.store_devpost_project(devpost_url, github_links, desc_hash)
+    store_source(devpost_url, github_links)
 
 
 def store_projects_batch(starting_page: int = 1, ending_page: int = 10):
@@ -66,32 +67,35 @@ def store_projects_batch(starting_page: int = 1, ending_page: int = 10):
         starting_page += 1
 
 
+def store_source(devpost_url, github_links):
+    print(f"Storing project {devpost_url}")
+
+    for link in github_links:
+        if link == "":
+            continue
+
+        user, repo = get_user_repo(link)
+        file_links = webscraping_utils.get_github_files(user, repo)
+
+        for file in file_links:
+            print(f" - Storing file {file[0]}")
+
+            file_hash = get_hash(webscraping_utils.get_file_content_raw(file[1]))
+
+            if file_hash == "":
+                return
+
+            name, ext = parse_file_name(file[0])
+            mysql_util.store_file(devpost_url, file_hash, name, ext)
+
+    mysql_util.mark_project_checked(devpost_url)
+
+
 def store_project_sources():
     unadded_projects = mysql_util.get_unadded_projects()
 
     for source in unadded_projects:
-        print(f"Storing project {source[0]}")
-        links = source[1].split(",")
-
-        for link in links:
-            if link == "":
-                continue
-
-            user, repo = get_user_repo(link)
-            file_links = webscraping_utils.get_github_files(user, repo)
-
-            for file in file_links:
-                print(f" - Storing file {file[0]}")
-
-                file_hash = get_hash(webscraping_utils.get_file_content_raw(file[1]))
-
-                if file_hash == "":
-                    return
-
-                name, ext = parse_file_name(file[0])
-                mysql_util.store_file(source[0], file_hash, name, ext)
-
-        mysql_util.mark_project_checked(source[0])
+        store_source(source[0], source[1].split(","))
 
 
 def check_project(devpost_url: str):
@@ -134,7 +138,7 @@ def check_project(devpost_url: str):
                     similar.setdefault(h2[0], 0)
                     similar[h2[0]] += 1
 
-    output_log(devpost_url, duplicate, similar, len(sources) + 1)
+    output_log(devpost_url, duplicate, similar, len(file_hashes) + 1)
 
 
 def output_log(devpost_url, possible_duplicate, similar, num_files):
@@ -149,7 +153,7 @@ def output_log(devpost_url, possible_duplicate, similar, num_files):
         else:
             for project in similar:
                 f.write(
-                    f"{project} has {similar[project]} files which are similar ({int(similar[project] / num_files)}%)")
+                    f"{project} has {similar[project]} similar files ({int(similar[project] / num_files * 100)}%)\n")
 
 
 def monitor_site() -> None:
