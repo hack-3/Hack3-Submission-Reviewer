@@ -60,14 +60,16 @@ def store_projects_batch(starting_page: int = 1, ending_page: int = 10):
         projects = webscraping_utils.get_new_projects(starting_page)
 
         for project in projects:
-            print(f"Storing project {project}")
-
             store_project(project)
 
         starting_page += 1
 
 
 def store_source(devpost_url, github_links):
+    if mysql_util.is_project_added(devpost_url):
+        print(f"Skipping project {devpost_url}")
+        return
+
     print(f"Storing project {devpost_url}")
 
     for link in github_links:

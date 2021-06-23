@@ -102,6 +102,10 @@ def get_unadded_projects() -> List[Tuple[str, str]]:
     return get_values("projects", "devpostUrl", "githubSources", restrictions=["added = FALSE"])
 
 
+def is_project_added(devpost_url) -> bool:
+    return bool(get_values("projects", "added", restrictions=["added = FALSE", f"devpostUrl = '{devpost_url}'"]))
+
+
 def get_desc_hashes() -> List[Tuple[str, str]]:
     return get_values("projects", "devpostUrl", "descHash")
 
