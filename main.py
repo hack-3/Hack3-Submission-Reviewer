@@ -8,9 +8,12 @@ if len(sys.argv) == 0:
     print("python main.py [store_projects|check_project]")
 else:
     if sys.argv[0] not in ("store_projects", "check_project"):
-        print("python main.py [store_projects|store_sources|check_project]")
+        print("python main.py [store_projects|check_project]")
     else:
         if sys.argv[0] == "store_projects":
+            # python main.py store_projects - stores page 1
+            # python main.py store_projects 1 10 - stores page 1-10 inclusive
+
             starting_page = 1
             ending_page = 1
 
@@ -28,6 +31,8 @@ else:
             else:
                 util.store_project_sources()
         else:
+            # python main.py check_project https://devpost.com/software/test - checks the project, outputs it to output.txt
+
             if len(sys.argv) == 1:
                 print("python main.py check_project (project_url)")
             else:
