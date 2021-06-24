@@ -1,4 +1,4 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import re
 import time
 from typing import List, Tuple
@@ -63,7 +63,7 @@ def store_projects_batch(starting_page: int = 1, ending_page: int = 10):
         projects = webscraping_utils.get_new_projects(starting_page)
 
         for project in projects:
-            executor.submit(store_project, (project))
+            executor.submit(store_project, project)
 
         starting_page += 1
 
@@ -122,6 +122,31 @@ def check_project(devpost_url: str):
 
     similar = {}
 
+    futures = []
+
+    executor = ThreadPoolExecutor()
+    futures.append(executor.submit(check_description, (desc_hash)))
+
+    sources = webscraping_utils.get_project_sources("", html=html)
+    file_hashes = []
+    for link in sources:
+        file_hashes.extend(get_file_hashes(link))
+
+    for h in file_hashes:
+        futures.append(executor.submit(check_hash, h[1], h[0], h[2]))
+
+    for f in as_completed(futures):
+        result = f.result()
+        for s in result:
+            similar.setdefault(s, 0)
+            similar[s] += result[s]
+
+    output_log(devpost_url, duplicate, similar, len(file_hashes) + 1)
+
+
+def check_description(desc_hash):
+    similar = {}
+
     print("Checking description")
     for entry in mysql_util.get_desc_hashes():
         if compare_hashes(desc_hash, entry[1]):
@@ -130,25 +155,7 @@ def check_project(devpost_url: str):
             similar.setdefault(entry[0], 0)
             similar[entry[0]] += 1
 
-    sources = webscraping_utils.get_project_sources("", html=html)
-    file_hashes = []
-    for link in sources:
-        file_hashes.extend(get_file_hashes(link))
-
-    for h in file_hashes:
-        print(f"Checking file {h[1]}")
-
-        hashes = mysql_util.get_file_hashes(h[2])
-
-        if hashes:
-            for h2 in hashes:
-                if compare_hashes(h[0], h2[2]):
-                    print(f"File {h[0]} is similar to {h2[1]} from project {h2[0]}")
-
-                    similar.setdefault(h2[0], 0)
-                    similar[h2[0]] += 1
-
-    output_log(devpost_url, duplicate, similar, len(file_hashes) + 1)
+    return similar
 
 
 def check_hash(file_name, hash_, file_ext):
