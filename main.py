@@ -39,4 +39,4 @@ else:
                 if sys.argv[1] == "-h":
                     print("python main.py check_project (project_url)")
                 else:
-                    print(util.check_project(sys.argv[1]))
+                    util.check_project(sys.argv[1])
