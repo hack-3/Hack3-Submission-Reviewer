@@ -1,7 +1,11 @@
-import json
+import json, os
 
 config_file = "storage.json"
 # config_file = input("Configuration file: ")
+
+if not os.path.isfile(config_file):
+    with open(config_file, "w") as f:
+        f.write("{}")
 
 with open(config_file, "r") as f:
     data = json.load(f)
