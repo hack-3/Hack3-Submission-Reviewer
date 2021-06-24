@@ -145,3 +145,5 @@ storage.json
 credentials.json
 dump_tables_DO_NOT_COMMIT.py
 token.pickle
+Pipfile*
+output.txt
