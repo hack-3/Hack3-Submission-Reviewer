@@ -184,9 +184,9 @@ def output_log(devpost_url, possible_duplicate, similar, num_files):
         if not similar:
             f.write("Project is not similar to any in the database")
         else:
-            for project in similar:
+            for url, num in sorted(similar.items(), key=lambda x: x[1], reverse=True):
                 f.write(
-                    f"{project} has {similar[project]} similar files ({int(similar[project] / num_files * 100)}%)\n")
+                    f"{url} has {num} similar files ({int(num / num_files * 100)}%)\n")
 
 
 def monitor_site() -> None:
